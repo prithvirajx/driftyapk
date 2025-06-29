@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drifty - Authentication</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #ff6b95 0%, #a466ff 100%);
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    /* Enhanced Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border-radius: 24px;
+    }
+    
+    /* Auth Container */
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto;
+    }
+    
+    /* Logo */
+    .logo-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(to right, #fff, #ff6b95);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Auth Card */
+    .auth-card {
+      padding: 30px;
+      transition: all 0.5s ease;
+    }
+    
+    .auth-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .auth-subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .country-select {
+      width: 100%;
+      padding: 15px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: 16px;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .country-select:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+    
+    .country-select option {
+      background: rgba(164, 102, 255, 0.9);
+      color: white;
+    }
+    
+    .select-wrapper {
+      position: relative;
+    }
+    
+    .select-wrapper::after {
+      content: '\f107';
+      font-family: 'Font Awesome 5 Free';
+      font-weight: 900;
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    
+    .phone-input-container {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0 15px;
+      transition: all 0.3s;
+    }
+    
+    .phone-input-container:focus-within {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+    
+    .country-code {
+      font-size: 16px;
+      padding-right: 10px;
+      border-right: 1px solid rgba(255, 255, 255, 0.3);
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .phone-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 16px;
+      padding: 15px;
+      outline: none;
+      width: 100%;
+    }
+    
+    .phone-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .otp-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      gap: 8px;
+    }
+    
+    .otp-input {
+      width: 45px;
+      height: 55px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .otp-input:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 15px;
+      border: none;
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(255, 107, 149, 0.4);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 149, 0.5);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: none;
+    }
+    
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Timer */
+    .timer {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    
+    .timer span {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    /* Resend */
+    .resend {
+      text-align: center;
+      margin-top: 15px;
+    }
+    
+    .resend-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: all 0.3s;
+      text-decoration: underline;
+    }
+    
+    .resend-btn:hover {
+      opacity: 1;
+    }
+    
+    .resend-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* View Management */
+    .view {
+      display: none;
+    }
+    
+    .view.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Decorative Elements */
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.4), rgba(164, 102, 255, 0.4));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: -1;
+    }
+    
+    .circle-1 {
+      width: 150px;
+      height: 150px;
+      top: -75px;
+      left: -75px;
+    }
+    
+    .circle-2 {
+      width: 100px;
+      height: 100px;
+      bottom: -50px;
+      right: -50px;
+    }
+    
+    /* Back Button */
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 10;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+    
+    /* Country Flag Icons */
+    .flag-icon {
+      width: 24px;
+      height: 16px;
+      margin-right: 8px;
+      vertical-align: middle;
+      display: inline-block;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .flag-us {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23f0f0f0' d='M0 85.331h512v341.337H0z'/%3E%3Cg fill='%23d80027'%3E%3Cpath d='M0 85.331h512v42.663H0zM0 170.657h512v42.663H0zM0 255.982h512v42.663H0zM0 341.308h512v42.663H0z'/%3E%3C/g%3E%3Cpath fill='%232e52b2' d='M0 85.331h256v183.797H0z'/%3E%3Cg fill='%23f0f0f0'%3E%3Cpath d='m99.822 160.624-4.123 12.684h-13.334l10.793 7.835-4.122 12.683 10.786-7.835 10.786 7.835-4.122-12.683 10.786-7.835h-13.334zM103.938 219.081l-4.122 12.683-4.123-12.683h-13.334l10.786-7.835-4.123-12.683 10.786 7.835 10.786-7.835-4.122 12.683 10.786 7.835zM47.577 219.081l-4.122 12.683-4.123-12.683H26l10.786-7.835-4.123-12.683 10.786 7.835 10.786-7.835-4.122 12.683 10.786 7.835zM43.46 160.624l-4.123 12.684H26l10.786 7.835-4.123 12.683 10.786-7.835 10.786 7.835-4.122-12.683 10.786-7.835H47.577zM99.822 114.878l-4.123 12.683H82.365l10.793 7.836-4.122 12.683 10.786-7.836 10.786 7.836-4.122-12.683 10.786-7.836h-13.334zM43.46 114.878l-4.123 12.683H26l10.786 7.836-4.123 12.683 10.786-7.836 10.786 7.836-4.122-12.683 10.786-7.836H47.577zM156.183 160.624l-4.122 12.684h-13.334l10.786 7.835-4.122 12.683 10.786-7.835 10.786 7.835-4.123-12.683 10.786-7.835h-13.334zM160.3 219.081l-4.123 12.683-4.122-12.683h-13.334l10.786-7.835-4.123-12.683 10.786 7.835 10.786-7.835-4.122 12.683 10.786 7.835zM156.183 114.878l-4.122 12.683h-13.334l10.786 7.836-4.122 12.683 10.786-7.836 10.786 7.836-4.123-12.683 10.786-7.836h-13.334zM208.528 160.624l-4.123 12.684h-13.334l10.786 7.835-4.122 12.683 10.786-7.835 10.786 7.835-4.123-12.683 10.786-7.835h-13.334zM212.645 219.081l-4.123 12.683-4.122-12.683h-13.334l10.786-7.835-4.123-12.683 10.786 7.835 10.786-7.835-4.122 12.683 10.786 7.835zM208.528 114.878l-4.123 12.683h-13.334l10.786 7.836-4.122 12.683 10.786-7.836 10.786 7.836-4.123-12.683 10.786-7.836h-13.334z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .flag-uk {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23f0f0f0' d='M0 85.333h512V426.67H0z'/%3E%3Cpath fill='%230052b4' d='M0 85.333h512V426.67H0z'/%3E%3Cpath fill='%23f0f0f0' d='M512 85.333v53.848L310.376 256l201.624 116.819v53.848H426.667L224 310.376 21.333 426.667H0v-53.848L201.624 256 0 139.181V85.333h85.333L288 201.624 490.667 85.333z'/%3E%3Cpath fill='%23d80027' d='M288 85.33h-64v138.666H0v64h224v138.666h64V287.996h224v-64H288z'/%3E%3Cpath fill='%23d80027' d='M0 85.329v15.083l154.756 89.578h46.238L0 85.329zM0 426.663v-15.081l154.756-89.58h46.238L0 426.663zM512 85.329v15.083L357.244 189.99h-46.238L512 85.329zM512 426.663v-15.081L357.244 322.002h-46.238L512 426.663z'/%3E%3C/svg%3E");
+    }
+    
+    .flag-in {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23f0f0f0' d='M0 85.337h512v341.326H0z'/%3E%3Cpath fill='%23ff9811' d='M0 85.337h512v113.775H0z'/%3E%3Cpath fill='%236da544' d='M0 312.888h512v113.775H0z'/%3E%3Ccircle fill='%230052b4' cx='256' cy='256' r='43.896'/%3E%3Ccircle fill='%23f0f0f0' cx='256' cy='256' r='27.434'/%3E%3Ccircle fill='%230052b4' cx='256' cy='256' r='13.715'/%3E%3Cg fill='%230052b4'%3E%3Cpath d='M256 222.146l8.432 19.239 20.762-4.953-12.296 17.654 12.296 17.654-20.762-4.953L256 289.854l-8.432-19.239-20.762 4.953 12.296-17.654-12.296-17.654 20.762 4.953z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .flag-id {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23f0f0f0' d='M0 85.337h512v341.326H0z'/%3E%3Cpath fill='%23a2001d' d='M0 85.337h512V256H0z'/%3E%3C/svg%3E");
+    }
+    
+    .flag-ca {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23f0f0f0' d='M0 85.334h512v341.337H0z'/%3E%3Cpath fill='%23d80027' d='M0 85.334h512v341.337H0z'/%3E%3Cpath fill='%23f0f0f0' d='M0 85.334h512v341.337H0z'/%3E%3Cg fill='%23d80027'%3E%3Cpath d='M0 85.334h128v341.337H0zM384 85.334h128v341.337H384zM256 239.304 384 426.67 128 426.668z'/%3E%3Cpath d='m272 263.965-32-15.484-32 15.484 12.352-33.194-31.296-17.731 35.648-2.746L236.352 178l19.648 32.294 35.648 2.746-31.296 17.731z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .flag-jp {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23f0f0f0' d='M0 85.331h512v341.337H0z'/%3E%3Ccircle fill='%23d80027' cx='256' cy='255.994' r='96'/%3E%3C/svg%3E");
+    }
+    
+    /* Terms and Privacy */
+    .terms-privacy {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    .terms-privacy a {
+      color: white;
+      text-decoration: underline;
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 480px) {
+      .auth-container {
+        max-width: 100%;
+      }
+      
+      .auth-card {
+        padding: 20px;
+      }
+      
+      .auth-title {
+        font-size: 22px;
+      }
+      
+      .otp-container {
+        gap: 6px;
+      }
+      
+      .otp-input {
+        width: 40px;
+        height: 50px;
+        font-size: 18px;
+      }
+      
+      .logo {
+        font-size: 28px;
+      }
+    }
+    
+    @media (max-height: 700px) {
+      .logo-container {
+        margin-bottom: 15px;
+      }
+      
+      .auth-card {
+        padding: 20px;
+      }
+      
+      .form-group {
+        margin-bottom: 15px;
+      }
+    }
+    
+    /* Fix for iOS input zoom */
+    @media screen and (-webkit-min-device-pixel-ratio: 0) { 
+      select,
+      textarea,
+      input {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="circle circle-1"></div>
+  <div class="circle circle-2"></div>
+  
+  <div class="logo-container">
+    <div class="logo">Drifty</div>
+  </div>
+  
+  <div class="auth-container glass">
+    <!-- Phone Number Input View -->
+    <div id="phoneView" class="view active">
+      <div class="auth-card">
+        <h2 class="auth-title">Welcome to Drifty</h2>
+        <p class="auth-subtitle">Enter your phone number to continue</p>
+        
+        <div class="form-group">
+          <label class="form-label">Select Country</label>
+          <div class="select-wrapper">
+            <select class="country-select" id="countrySelect" onchange="updateCountryCode()">
+              <option value="+1" data-flag="us">United States</option>
+              <option value="+44" data-flag="uk">United Kingdom</option>
+              <option value="+91" data-flag="in" selected>India</option>
+              <option value="+62" data-flag="id">Indonesia</option>
+              <option value="+1" data-flag="ca">Canada</option>
+              <option value="+81" data-flag="jp">Japan</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <div class="phone-input-container">
+            <div class="country-code" id="countryCode">
+              <span class="flag-icon flag-in"></span> +91
+            </div>
+            <input type="tel" class="phone-input" placeholder="Enter your phone number" id="phoneInput" inputmode="numeric">
+          </div>
+        </div>
+        
+        <button class="btn" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+        
+        <div class="terms-privacy">
+          By continuing, you agree to our <br>
+          <a href="#">Terms of Service</a> & <a href="#">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- OTP Verification View -->
+    <div id="otpView" class="view">
+      <div class="auth-card">
+        <button class="back-btn" onclick="goBack()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        
+        <h2 class="auth-title">Verify Your Number</h2>
+        <p class="auth-subtitle">Enter the 6-digit code sent to <span id="phoneDisplay">+91 XXX XXX XXXX</span></p>
+        
+        <div class="otp-container">
+          <input type="text" class="otp-input" maxlength="1" inputmode="numeric" onkeyup="moveToNext(this, 0)">
+          <input type="text" class="otp-input" maxlength="1" inputmode="numeric" onkeyup="moveToNext(this, 1)">
+          <input type="text" class="otp-input" maxlength="1" inputmode="numeric" onkeyup="moveToNext(this, 2)">
+          <input type="text" class="otp-input" maxlength="1" inputmode="numeric" onkeyup="moveToNext(this, 3)">
+          <input type="text" class="otp-input" maxlength="1" inputmode="numeric" onkeyup="moveToNext(this, 4)">
+          <input type="text" class="otp-input" maxlength="1" inputmode="numeric" onkeyup="moveToNext(this, 5)">
+        </div>
+        
+        <div class="timer">
+          Resend code in <span id="timer">01:30</span>
+        </div>
+        
+        <button class="btn" onclick="verifyOTP()">Verify</button>
+        
+        <div class="resend">
+          <button class="resend-btn" id="resendBtn" disabled onclick="resendOTP()">
+            Didn't receive code? Resend
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Update country code when country is selected
+    function updateCountryCode() {
+      const select = document.getElementById('countrySelect');
+      const countryCode = document.getElementById('countryCode');
+      const selectedOption = select.options[select.selectedIndex];
+      const flag = selectedOption.getAttribute('data-flag');
+      
+      countryCode.innerHTML = `<span class="flag-icon flag-${flag}"></span> ${select.value}`;
+    }
+    
+    // Send OTP and move to verification view
+    async function sendOTP() {
+      const phoneInput = document.getElementById('phoneInput');
+      const countrySelect = document.getElementById('countrySelect');
+      const phoneDisplay = document.getElementById('phoneDisplay');
+      
+      // Validate phone number (simple validation)
+      if (phoneInput.value.trim().length < 5) {
+        alert('Please enter a valid phone number');
+        return;
+      }
+      
+      // Format phone number for display
+      const formattedNumber = `${countrySelect.value} ${formatPhoneNumber(phoneInput.value)}`;
+      phoneDisplay.textContent = formattedNumber;
+      
+      // Switch to OTP verification view
+      document.getElementById('phoneView').classList.remove('active');
+      document.getElementById('otpView').classList.add('active');
+      
+      // Start timer
+      startTimer();
+      
+      // Send OTP using Firebase
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sendOtpBtn', { size: 'invisible' });
+        await window.recaptchaVerifier.render();
+      }
+      const appVerifier = window.recaptchaVerifier;
+      const fullPhone = `${countrySelect.value}${phoneInput.value.trim()}`;
+      firebase.auth().signInWithPhoneNumber(fullPhone, appVerifier)
+        .then((confirmation) => {
+          window.confirmationResult = confirmation;
+          console.log('OTP sent to', fullPhone);
+        })
+        .catch((error) => {
+          alert(error.message);
+          console.error(error);
+        });
+      
+      // Focus on first OTP input
+      setTimeout(() => {
+        document.querySelectorAll('.otp-input')[0].focus();
+      }, 500);
+    }
+    
+    // Format phone number for display
+    function formatPhoneNumber(phone) {
+      // Simple formatting, in a real app you'd use a library for proper formatting
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length <= 3) {
+        return cleaned;
+      } else if (cleaned.length <= 6) {
+        return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+      } else {
+        return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+      }
+    }
+    
+    // Go back to phone input view
+    function goBack() {
+      document.getElementById('otpView').classList.remove('active');
+      document.getElementById('phoneView').classList.add('active');
+      
+      // Reset OTP inputs
+      const otpInputs = document.querySelectorAll('.otp-input');
+      otpInputs.forEach(input => {
+        input.value = '';
+      });
+      
+      // Clear timer
+      clearInterval(window.timerInterval);
+    }
+    
+    // Move to next OTP input field
+    function moveToNext(field, index) {
+      // Allow only numbers
+      field.value = field.value.replace(/[^0-9]/g, '');
+      
+      const otpInputs = document.querySelectorAll('.otp-input');
+      
+      if (field.value.length >= 1) {
+        if (index < 5) {
+          otpInputs[index + 1].focus();
+        } else {
+          field.blur();
+          // Auto-verify when all digits are entered
+          checkAllFieldsFilled();
+        }
+      } else if (field.value.length === 0 && index > 0) {
+        otpInputs[index - 1].focus();
+      }
+    }
+    
+    // Handle backspace in OTP fields
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace') {
+        const activeElement = document.activeElement;
+        if (activeElement.classList.contains('otp-input')) {
+          const index = Array.from(document.querySelectorAll('.otp-input')).indexOf(activeElement);
+          if (activeElement.value === '' && index > 0) {
+            document.querySelectorAll('.otp-input')[index - 1].focus();
+          }
+        }
+      }
+    });
+    
+    // Check if all OTP fields are filled
+    function checkAllFieldsFilled() {
+      const otpInputs = document.querySelectorAll('.otp-input');
+      let allFilled = true;
+      let otp = '';
+      
+      otpInputs.forEach(input => {
+        if (input.value.trim() === '') {
+          allFilled = false;
+        }
+        otp += input.value;
+      });
+      
+      if (allFilled && otp.length === 6) {
+        // Auto-verify when all fields are filled
+        verifyOTP();
+      }
+    }
+    
+    // Start countdown timer
+    function startTimer() {
+      let totalSeconds = 90; // 1:30 in seconds
+      const timerElement = document.getElementById('timer');
+      const resendBtn = document.getElementById('resendBtn');
+      
+      // Clear any existing timer
+      if (window.timerInterval) {
+        clearInterval(window.timerInterval);
+      }
+      
+      // Disable resend button initially
+      resendBtn.disabled = true;
+      
+      // Update timer every second
+      window.timerInterval = setInterval(() => {
+        totalSeconds--;
+        
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        
+        // Format time as MM:SS
+        timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Enable resend button when timer reaches zero
+        if (totalSeconds <= 0) {
+          clearInterval(window.timerInterval);
+          resendBtn.disabled = false;
+        }
+      }, 1000);
+    }
+    
+    // Resend OTP
+    async function resendOTP() {
+      // Reset and start timer again
+      startTimer();
+      
+      // Resend OTP using Firebase
+      const fullPhone = `${document.getElementById('countrySelect').value}${document.getElementById('phoneInput').value.trim()}`;
+      firebase.auth().signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
+        .then((conf) => {
+          window.confirmationResult = conf;
+          alert('OTP has been resent to your phone');
+        })
+        .catch((error) => {
+          alert(error.message);
+          console.error(error);
+        });
+      
+      // Reset OTP inputs
+      const otpInputs = document.querySelectorAll('.otp-input');
+      otpInputs.forEach(input => {
+        input.value = '';
+      });
+      
+      // Focus on first input
+      otpInputs[0].focus();
+    }
+    
+    // Verify OTP
+    function verifyOTP() {
+      const otpInputs = document.querySelectorAll('.otp-input');
+      let otp = '';
+      
+      // Collect OTP from input fields
+      otpInputs.forEach(input => {
+        otp += input.value;
+      });
+      
+      // Validate OTP (simple validation)
+      if (otp.length !== 6) {
+        alert('Please enter a valid 6-digit OTP');
+        return;
+      }
+      
+      // Verify OTP with Firebase
+      if (!window.confirmationResult) {
+        alert('Please request a new OTP.');
+        return;
+      }
+      window.confirmationResult.confirm(otp)
+        .then(() => {
+          // Auth listener will handle redirect
+        })
+        .catch((error) => {
+          alert(error.message);
+          console.error(error);
+        });
+    }
+    
+    // Handle paste event for OTP
+    document.addEventListener('paste', function(e) {
+      if (!e.target.classList.contains('otp-input')) return;
+      
+      e.preventDefault();
+      const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+      const otpInputs = document.querySelectorAll('.otp-input');
+      
+      // If pasted data is 6 digits, distribute across inputs
+      if (/^\d{6}$/.test(pastedData)) {
+        for (let i = 0; i < 6; i++) {
+          otpInputs[i].value = pastedData[i];
+        }
+        checkAllFieldsFilled();
+      }
+    });
+    
+    // Initialize country code on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCountryCode();
+      
+      // Prevent zoom on input focus on iOS
+      const metaViewport = document.querySelector('meta[name=viewport]');
+      metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
+      
+      // Allow only numeric input for phone
+      const phoneInput = document.getElementById('phoneInput');
+      phoneInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+    });
+  </script>
+  <!-- Firebase JS SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <div id="recaptcha-container"></div>
+
+  <script>
+    // Initialize Firebase (same config as index.html)
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCmLLxdcys-PCN__UUCsTycuaqdVi_ULkc',
+      authDomain: 'driftyapk.firebaseapp.com',
+      projectId: 'driftyapk',
+      storageBucket: 'driftyapk.appspot.com',
+      messagingSenderId: '654037388109',
+      appId: '1:654037388109:android:4eafdba04ffe1ddfab4504',
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // If user already authenticated, go straight to home
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>

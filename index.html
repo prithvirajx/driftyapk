@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drifty App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      background: linear-gradient(135deg, #ff6b95 0%, #a466ff 100%);
+      color: white;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Enhanced Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+    
+    .glass-dark {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    
+    .glass-contrast {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Layout */
+    .container {
+      padding: 70px 15px 80px;
+    }
+    
+    /* Top bar */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 100;
+    }
+    
+    .logo {
+      font-size: 26px;
+      font-weight: 700;
+      background: linear-gradient(to right, #fff, #ff6b95);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    
+    .top-icons {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      background: rgba(255, 255, 255, 0.2);
+      font-size: 18px;
+    }
+    
+    .icon-btn:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+    }
+    
+    .badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 10px;
+      height: 10px;
+      background: #ff3366;
+      border-radius: 50%;
+      box-shadow: 0 0 0 rgba(255, 51, 102, 0.7);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 51, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); }
+    }
+    
+    /* Bottom navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .nav-item.active {
+      transform: translateY(-8px);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+    
+    .nav-icon {
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+    
+    .nav-text {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    /* Create post */
+    .create-post {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .post-input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      outline: none;
+      font-size: 14px;
+    }
+    
+    .post-input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .post-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      font-size: 16px;
+    }
+    
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+    
+    .post-btn {
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: none;
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .post-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(164, 102, 255, 0.4);
+    }
+    
+    /* Feed posts */
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .post {
+      border-radius: 20px;
+      overflow: hidden;
+      animation: fadeIn 0.5s ease forwards;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .post:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .post-header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+    }
+    
+    .user-info {
+      margin-left: 10px;
+      flex: 1;
+    }
+    
+    .username {
+      font-weight: 600;
+    }
+    
+    .time {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    .post-content {
+      padding: 0 15px 15px;
+    }
+    
+    .post-image {
+      width: 100%;
+      height: 250px;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+    
+    .post-footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px;
+    }
+    
+    .post-buttons {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .post-button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 16px;
+    }
+    
+    .post-button:hover {
+      transform: scale(1.1);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Hangout */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .toggle {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .toggle.active {
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+    }
+    
+    .toggle-handle {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: white;
+      transition: all 0.3s;
+    }
+    
+    .toggle.active .toggle-handle {
+      left: 33px;
+    }
+    
+    .hangout-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    
+    .hangout-card {
+      border-radius: 15px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 3/4;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .hangout-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .hangout-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: linear-gradient(to bottom, rgba(255, 107, 149, 0.3), rgba(164, 102, 255, 0.3));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+    }
+    
+    .hangout-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    
+    .hangout-name {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .hangout-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    
+    /* Events */
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .event-card {
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    
+    .event-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .event-img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      background: linear-gradient(to right, rgba(255, 107, 149, 0.3), rgba(164, 102, 255, 0.3));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+    
+    .event-content {
+      padding: 15px;
+    }
+    
+    .event-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .event-details {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    
+    .event-description {
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    
+    .event-actions {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Profile */
+    .profile-header {
+      position: relative;
+      height: 200px;
+      border-radius: 20px 20px 0 0;
+      overflow: hidden;
+    }
+    
+    .profile-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.3), rgba(164, 102, 255, 0.3));
+    }
+    
+    .profile-avatar {
+      position: absolute;
+      bottom: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+    
+    .profile-info {
+      margin-top: 60px;
+      text-align: center;
+      padding: 0 20px;
+    }
+    
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .profile-bio {
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+    
+    .profile-stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    .profile-details {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .detail-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .profile-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .gallery-item {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    /* Fullscreen views */
+    .fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      background: linear-gradient(135deg, #ff6b95 0%, #a466ff 100%);
+      display: none;
+      flex-direction: column;
+    }
+    
+    .fullscreen-header {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-right: 15px;
+      font-size: 18px;
+    }
+    
+    .fullscreen-title {
+      flex: 1;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .fullscreen-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal-content {
+      width: 90%;
+      max-width: 400px;
+      max-height: 90vh;
+      border-radius: 20px;
+      overflow: hidden;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .modal-title {
+      flex: 1;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .modal-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .modal-body {
+      padding: 15px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    
+    .modal-footer {
+      padding: 15px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Chat */
+    .chat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .chat-item:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+    
+    .chat-info {
+      flex: 1;
+      margin-left: 10px;
+    }
+    
+    .chat-name {
+      font-weight: 600;
+    }
+    
+    .chat-preview {
+      font-size: 12px;
+      opacity: 0.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+    
+    .chat-time {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    
+    .chat-room {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .message {
+      max-width: 80%;
+      padding: 12px 15px;
+      border-radius: 18px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .message.received {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.15);
+      border-bottom-left-radius: 5px;
+    }
+    
+    .message.sent {
+      align-self: flex-end;
+      background: rgba(255, 107, 149, 0.4);
+      border-bottom-right-radius: 5px;
+    }
+    
+    .message-time {
+      font-size: 10px;
+      opacity: 0.7;
+      text-align: right;
+      margin-top: 5px;
+    }
+    
+    .chat-footer {
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      outline: none;
+    }
+    
+    .chat-input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    /* Notifications */
+    .notification-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .notification-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      transition: all 0.3s;
+    }
+    
+    .notification-item:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+    
+    .notification-content {
+      flex: 1;
+      margin-left: 10px;
+    }
+    
+    .notification-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    /* Forms */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .form-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .form-input {
+      padding: 12px 15px;
+      border-radius: 15px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      outline: none;
+    }
+    
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .form-textarea {
+      padding: 12px 15px;
+      border-radius: 15px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      outline: none;
+      resize: none;
+      height: 100px;
+    }
+    
+    .form-textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .option {
+      padding: 8px 15px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .option.selected {
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+    }
+    
+    /* Profile modal */
+    .profile-modal-content {
+      padding-bottom: 30px;
+    }
+    
+    .profile-photos {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .profile-photo {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    .hangout-reason {
+      padding: 15px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      margin-bottom: 15px;
+    }
+    
+    .hangout-reason-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    /* Utilities */
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .mb-20 {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar glass-contrast">
+    <div class="logo">Drifty</div>
+    <div class="top-icons">
+      <div class="icon-btn" onclick="openNotificationsModal()">
+        <i class="fas fa-bell"></i>
+        <div class="badge"></div>
+      </div>
+      <div class="icon-btn" onclick="openChats()">
+        <i class="fas fa-comment-dots"></i>
+        <div class="badge"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feed View -->
+  <div id="feed-view" class="container">
+    <!-- Create Post -->
+    <div class="create-post glass">
+      <div class="avatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <input type="text" class="post-input" placeholder="Share your moment..." onclick="openCreatePostModal()">
+      <div class="post-actions">
+        <button class="action-btn">
+          <i class="fas fa-image"></i>
+        </button>
+        <button class="action-btn">
+          <i class="fas fa-video"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Feed -->
+    <div class="feed" id="feed-container">
+      <!-- Post 1 -->
+      <div class="post glass" style="animation-delay: 0.1s">
+        <div class="post-header">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <div class="username">Sophie Lane</div>
+            <div class="time">2 hours ago</div>
+          </div>
+          <i class="fas fa-ellipsis-v"></i>
+        </div>
+        <div class="post-content">
+          <p>Just found this amazing little café downtown! Perfect vibes for a rainy afternoon ☕</p>
+        </div>
+        <div class="post-image">
+          <i class="fas fa-coffee"></i>
+        </div>
+        <div class="post-footer">
+          <div class="post-buttons">
+            <button class="post-button like-btn">
+              <i class="far fa-heart"></i>
+              <span>124</span>
+            </button>
+            <button class="post-button">
+              <i class="far fa-comment"></i>
+              <span>18</span>
+            </button>
+            <button class="post-button">
+              <i class="fas fa-share"></i>
+            </button>
+          </div>
+          <button class="post-button">
+            <i class="far fa-bookmark"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Post 2 -->
+      <div class="post glass" style="animation-delay: 0.2s">
+        <div class="post-header">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <div class="username">Alex Morgan</div>
+            <div class="time">5 hours ago</div>
+          </div>
+          <i class="fas fa-ellipsis-v"></i>
+        </div>
+        <div class="post-content">
+          <p>Feeling inspired today! Sometimes all you need is a change of scenery to get those creative juices flowing. What inspires you the most? ✨</p>
+        </div>
+        <div class="post-footer">
+          <div class="post-buttons">
+            <button class="post-button like-btn">
+              <i class="far fa-heart"></i>
+              <span>87</span>
+            </button>
+            <button class="post-button">
+              <i class="far fa-comment"></i>
+              <span>32</span>
+            </button>
+            <button class="post-button">
+              <i class="fas fa-share"></i>
+            </button>
+          </div>
+          <button class="post-button">
+            <i class="far fa-bookmark"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Post 3 -->
+      <div class="post glass" style="animation-delay: 0.3s">
+        <div class="post-header">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <div class="username">Jamie Rivers</div>
+            <div class="time">Yesterday</div>
+          </div>
+          <i class="fas fa-ellipsis-v"></i>
+        </div>
+        <div class="post-content">
+          <p>Check out this sunset from our rooftop hangout last night! 🌅</p>
+        </div>
+        <div class="post-image" style="position: relative;">
+          <i class="fas fa-sun"></i>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-play"></i>
+          </div>
+        </div>
+        <div class="post-footer">
+          <div class="post-buttons">
+            <button class="post-button like-btn">
+              <i class="far fa-heart"></i>
+              <span>243</span>
+            </button>
+            <button class="post-button">
+              <i class="far fa-comment"></i>
+              <span>42</span>
+            </button>
+            <button class="post-button">
+              <i class="fas fa-share"></i>
+            </button>
+          </div>
+          <button class="post-button">
+            <i class="far fa-bookmark"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hangout View -->
+  <div id="hangout-view" class="container" style="display: none;">
+    <div class="toggle-container glass">
+      <div>
+        <h3>Available for Hangout</h3>
+        <p style="font-size: 12px; opacity: 0.8;">Let others know you're open to meet</p>
+      </div>
+      <div class="toggle" onclick="toggleHangout(this)">
+        <div class="toggle-handle"></div>
+      </div>
+    </div>
+    
+    <div class="section-title">People Nearby</div>
+    
+    <div class="hangout-grid">
+      <div class="hangout-card glass" onclick="openProfileModal('Emma', 24, '1.2 km')">
+        <div class="hangout-img">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="hangout-info">
+          <div class="hangout-name">Emma, 24</div>
+          <div class="hangout-details">
+            <span><i class="fas fa-map-marker-alt"></i> 1.2 km</span>
+            <span><i class="fas fa-coffee"></i> Coffee</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hangout-card glass" onclick="openProfileModal('Jake', 27, '0.8 km')">
+        <div class="hangout-img">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="hangout-info">
+          <div class="hangout-name">Jake, 27</div>
+          <div class="hangout-details">
+            <span><i class="fas fa-map-marker-alt"></i> 0.8 km</span>
+            <span><i class="fas fa-hamburger"></i> Lunch</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hangout-card glass" onclick="openProfileModal('Sophia', 23, '2.5 km')">
+        <div class="hangout-img">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="hangout-info">
+          <div class="hangout-name">Sophia, 23</div>
+          <div class="hangout-details">
+            <span><i class="fas fa-map-marker-alt"></i> 2.5 km</span>
+            <span><i class="fas fa-landmark"></i> Museum</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hangout-card glass" onclick="openProfileModal('Mike', 26, '3.1 km')">
+        <div class="hangout-img">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="hangout-info">
+          <div class="hangout-name">Mike, 26</div>
+          <div class="hangout-details">
+            <span><i class="fas fa-map-marker-alt"></i> 3.1 km</span>
+            <span><i class="fas fa-hiking"></i> Hiking</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event View -->
+  <div id="event-view" class="container" style="display: none;">
+    <div class="section-header">
+      <div class="section-title">Upcoming Events</div>
+      <button class="btn btn-primary" onclick="openCreateEventModal()">
+        <i class="fas fa-plus"></i> Create
+      </button>
+    </div>
+    
+    <div class="event-list">
+      <div class="event-card glass">
+        <div class="event-img">
+          <i class="fas fa-music"></i>
+        </div>
+        <div class="event-content">
+          <h3 class="event-title">Downtown Music Festival</h3>
+          <div class="event-details">
+            <span><i class="fas fa-calendar-alt"></i> This Weekend</span>
+            <span><i class="fas fa-map-marker-alt"></i> Central Park</span>
+          </div>
+          <p class="event-description">Join us for a weekend of amazing live music, food, and fun activities!</p>
+          <div class="event-actions">
+            <button class="btn btn-primary">Join</button>
+            <button class="btn btn-secondary">Interested</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="event-card glass">
+        <div class="event-img">
+          <i class="fas fa-utensils"></i>
+        </div>
+        <div class="event-content">
+          <h3 class="event-title">Food Truck Rally</h3>
+          <div class="event-details">
+            <span><i class="fas fa-calendar-alt"></i> Next Friday</span>
+            <span><i class="fas fa-map-marker-alt"></i> Riverside Plaza</span>
+          </div>
+          <p class="event-description">Taste delicious food from over 20 different food trucks from around the city!</p>
+          <div class="event-actions">
+            <button class="btn btn-primary">Join</button>
+            <button class="btn btn-secondary">Interested</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="event-card glass">
+        <div class="event-img">
+          <i class="fas fa-paint-brush"></i>
+        </div>
+        <div class="event-content">
+          <h3 class="event-title">Art Gallery Opening</h3>
+          <div class="event-details">
+            <span><i class="fas fa-calendar-alt"></i> Next Thursday</span>
+            <span><i class="fas fa-map-marker-alt"></i> Modern Art Museum</span>
+          </div>
+          <p class="event-description">Be the first to see the new exhibition featuring local artists. Wine and appetizers included!</p>
+          <div class="event-actions">
+            <button class="btn btn-primary">Join</button>
+            <button class="btn btn-secondary">Interested</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile View -->
+  <div id="profile-view" class="container" style="display: none;">
+    <div class="profile-header glass">
+      <div class="profile-cover"></div>
+      <div class="profile-avatar">
+        <i class="fas fa-user"></i>
+      </div>
+    </div>
+    
+    <div class="profile-info">
+      <h2 class="profile-name">Your Name</h2>
+      <p class="profile-bio">Living life one adventure at a time ✨</p>
+      
+      <div class="profile-stats">
+        <div class="stat">
+          <div class="stat-value">248</div>
+          <div class="stat-label">Friends</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">36</div>
+          <div class="stat-label">Events</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">124</div>
+          <div class="stat-label">Hangouts</div>
+        </div>
+      </div>
+      
+      <div class="profile-details">
+        <div class="detail-item">
+          <div class="detail-icon">
+            <i class="fas fa-birthday-cake"></i>
+          </div>
+          <div>25 years old</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-icon">
+            <i class="fas fa-ruler-vertical"></i>
+          </div>
+          <div>5'8" (173 cm)</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-icon">
+            <i class="fas fa-map-marker-alt"></i>
+          </div>
+          <div>New York City</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-icon">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <div>Designer at Creative Studio</div>
+        </div>
+      </div>
+      
+      <h3 style="text-align: left; margin-bottom: 10px;">Photos</h3>
+      <div class="profile-gallery">
+        <div class="gallery-item">
+          <i class="fas fa-image"></i>
+        </div>
+        <div class="gallery-item">
+          <i class="fas fa-image"></i>
+        </div>
+        <div class="gallery-item">
+          <i class="fas fa-image"></i>
+        </div>
+        <div class="gallery-item">
+          <i class="fas fa-image"></i>
+        </div>
+        <div class="gallery-item">
+          <i class="fas fa-image"></i>
+        </div>
+        <div class="gallery-item">
+          <i class="fas fa-image"></i>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="openEditProfileModal()">
+        <i class="fas fa-edit"></i> Edit Profile
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav glass-contrast">
+    <a href="#" class="nav-item active" onclick="showView('feed-view', this); return false;">
+      <div class="nav-icon">
+        <i class="fas fa-home"></i>
+      </div>
+      <div class="nav-text">Feed</div>
+    </a>
+    <a href="#" class="nav-item" onclick="showView('hangout-view', this); return false;">
+      <div class="nav-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="nav-text">Hangout</div>
+    </a>
+    <a href="#" class="nav-item" onclick="showView('event-view', this); return false;">
+      <div class="nav-icon">
+        <i class="fas fa-calendar-alt"></i>
+      </div>
+      <div class="nav-text">Events</div>
+    </a>
+    <a href="#" class="nav-item" onclick="showView('profile-view', this); return false;">
+      <div class="nav-icon">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="nav-text">Profile</div>
+    </a>
+  </div>
+
+  <!-- Chat List Fullscreen -->
+  <div id="chat-list-view" class="fullscreen">
+    <div class="fullscreen-header glass">
+      <button class="back-btn" onclick="closeFullscreen('chat-list-view')">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="fullscreen-title">Messages</div>
+    </div>
+    
+    <div class="fullscreen-content">
+      <div class="chat-list">
+        <div class="chat-item" onclick="openChatRoom('Emma')">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="chat-info">
+            <div class="chat-name">Emma</div>
+            <div class="chat-preview">Hey, are you free for coffee tomorrow?</div>
+          </div>
+          <div class="chat-time">2m</div>
+        </div>
+        
+        <div class="chat-item" onclick="openChatRoom('Jake')">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="chat-info">
+            <div class="chat-name">Jake</div>
+            <div class="chat-preview">The event was amazing! Thanks for inviting me</div>
+          </div>
+          <div class="chat-time">1h</div>
+        </div>
+        
+        <div class="chat-item" onclick="openChatRoom('Sophia')">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="chat-info">
+            <div class="chat-name">Sophia</div>
+            <div class="chat-preview">Let me know when you're free this weekend</div>
+          </div>
+          <div class="chat-time">5h</div>
+        </div>
+        
+        <div class="chat-item" onclick="openChatRoom('Mike')">
+          <div class="avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="chat-info">
+            <div class="chat-name">Mike</div>
+            <div class="chat-preview">Did you see the new café downtown?</div>
+          </div>
+          <div class="chat-time">1d</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Room Fullscreen -->
+  <div id="chat-room-view" class="fullscreen">
+    <div class="fullscreen-header glass">
+      <button class="back-btn" onclick="closeChatRoom()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="avatar" style="margin-right: 10px;">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="fullscreen-title" id="chat-room-name">User</div>
+      <div style="margin-left: auto; display: flex; gap: 10px;">
+        <button class="icon-btn">
+          <i class="fas fa-phone"></i>
+        </button>
+        <button class="icon-btn">
+          <i class="fas fa-video"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="chat-room">
+      <div class="chat-messages" id="chat-messages">
+        <div class="message received">
+          <div>Hey there! How are you?</div>
+          <div class="message-time">10:30 AM</div>
+        </div>
+        
+        <div class="message sent">
+          <div>I'm good! Just checking out this new app called Drifty. It's pretty cool!</div>
+          <div class="message-time">10:32 AM</div>
+        </div>
+        
+        <div class="message received">
+          <div>Oh nice! I've been using it too. Want to meet up for coffee sometime?</div>
+          <div class="message-time">10:33 AM</div>
+        </div>
+        
+        <div class="message sent">
+          <div>Sure! That sounds great. When are you free?</div>
+          <div class="message-time">10:35 AM</div>
+        </div>
+        
+        <div class="message received">
+          <div>How about tomorrow afternoon? Around 3pm?</div>
+          <div class="message-time">10:36 AM</div>
+        </div>
+      </div>
+      
+      <div class="chat-footer glass">
+        <button class="icon-btn">
+          <i class="fas fa-image"></i>
+        </button>
+        <button class="icon-btn">
+          <i class="far fa-smile"></i>
+        </button>
+        <input type="text" class="chat-input" placeholder="Type a message...">
+        <button class="icon-btn" style="background: linear-gradient(135deg, #ff6b95, #a466ff);" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications Modal -->
+  <div id="notifications-modal" class="modal">
+    <div class="modal-content glass-dark">
+      <div class="modal-header">
+        <div class="modal-title">Notifications</div>
+        <button class="modal-close" onclick="closeModal('notifications-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="notification-list">
+          <div class="notification-item">
+            <div class="avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="notification-content">
+              <div><strong>Emma</strong> sent you a message request</div>
+              <div class="notification-actions">
+                <button class="btn btn-primary">Accept</button>
+                <button class="btn btn-secondary">Decline</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="notification-item">
+            <div class="avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="notification-content">
+              <div><strong>Jake</strong> liked your post</div>
+            </div>
+          </div>
+          
+          <div class="notification-item">
+            <div class="avatar">
+              <i class="fas fa-music"></i>
+            </div>
+            <div class="notification-content">
+              <div><strong>Downtown Music Festival</strong> is happening this weekend</div>
+            </div>
+          </div>
+          
+          <div class="notification-item">
+            <div class="avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="notification-content">
+              <div><strong>Sophia</strong> commented on your post</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Post Modal -->
+  <div id="create-post-modal" class="modal">
+    <div class="modal-content glass-dark">
+      <div class="modal-header">
+        <div class="modal-title">Create Post</div>
+        <button class="modal-close" onclick="closeModal('create-post-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form">
+          <textarea id="post-text" class="form-textarea" placeholder="What's on your mind?"></textarea>
+          
+          <div class="form-group">
+            <div class="form-label">Add to your post</div>
+            <div class="options">
+              <button class="option" onclick="toggleMediaPreview()">
+                <i class="fas fa-image"></i> Photo
+              </button>
+              <button class="option">
+                <i class="fas fa-video"></i> Video
+              </button>
+              <button class="option">
+                <i class="fas fa-map-marker-alt"></i> Location
+              </button>
+              <button class="option">
+                <i class="fas fa-tag"></i> Tag
+              </button>
+            </div>
+          </div>
+          
+          <div id="media-preview" style="display: none;">
+            <div class="form-label">Preview</div>
+            <div style="height: 200px; background: rgba(255, 255, 255, 0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-image" style="font-size: 40px; opacity: 0.5;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="submitPost()">Post</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Event Modal -->
+  <div id="create-event-modal" class="modal">
+    <div class="modal-content glass-dark">
+      <div class="modal-header">
+        <div class="modal-title">Create Event</div>
+        <button class="modal-close" onclick="closeModal('create-event-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group">
+            <label class="form-label">Event Title</label>
+            <input type="text" class="form-input" placeholder="Enter event title">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Date & Time</label>
+            <input type="text" class="form-input" placeholder="Select date and time">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" class="form-input" placeholder="Enter location">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" placeholder="Describe your event"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Event Photo</label>
+            <div style="height: 150px; background: rgba(255, 255, 255, 0.1); border-radius: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <i class="fas fa-camera" style="font-size: 40px; opacity: 0.5;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-primary">Create Event</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hangout Availability Modal -->
+  <div id="hangout-availability-modal" class="modal">
+    <div class="modal-content glass-dark">
+      <div class="modal-header">
+        <div class="modal-title">Set Your Availability</div>
+        <button class="modal-close" onclick="closeModal('hangout-availability-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group">
+            <label class="form-label">What are you available for?</label>
+            <input type="text" class="form-input" placeholder="Coffee, lunch, museum visit, etc.">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">How long are you available?</label>
+            <div class="options">
+              <button class="option" onclick="selectOption(this)">1 hour</button>
+              <button class="option" onclick="selectOption(this)">3 hours</button>
+              <button class="option" onclick="selectOption(this)">5 hours</button>
+              <button class="option" onclick="selectOption(this)">All day</button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Your location</label>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div>Current Location</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="setAvailability()">Set Availability</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal">
+    <div class="modal-content glass-dark">
+      <div class="modal-header">
+        <div class="modal-title" id="profile-modal-name">User Profile</div>
+        <button class="modal-close" onclick="closeModal('profile-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="profile-header" style="height: 150px;">
+          <div class="profile-cover"></div>
+          <div class="profile-avatar" style="bottom: -40px; width: 80px; height: 80px;">
+            <i class="fas fa-user"></i>
+          </div>
+        </div>
+        
+        <div class="profile-info" style="margin-top: 50px;">
+          <h2 class="profile-name" id="modal-name">User Name</h2>
+          <p class="profile-bio">Coffee enthusiast, hiking lover, and bookworm 📚</p>
+          
+          <div class="profile-stats">
+            <div class="stat">
+              <div class="stat-value" id="modal-age">25</div>
+              <div class="stat-label">Age</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="modal-distance">2.5 km</div>
+              <div class="stat-label">Away</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">3 hr</div>
+              <div class="stat-label">Available</div>
+            </div>
+          </div>
+          
+          <div class="hangout-reason glass">
+            <div class="hangout-reason-title">Available for</div>
+            <p>Looking for someone to join me for coffee and conversation at the new café downtown!</p>
+          </div>
+          
+          <div class="profile-details">
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-ruler-vertical"></i>
+              </div>
+              <div>5'6" (168 cm)</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <div>Marketing Specialist</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-graduation-cap"></i>
+              </div>
+              <div>NYU Graduate</div>
+            </div>
+          </div>
+          
+          <h3 style="text-align: left; margin: 20px 0 10px;">Photos</h3>
+          <div class="profile-photos">
+            <div class="profile-photo">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="profile-photo">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="profile-photo">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="profile-photo">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="profile-photo">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="profile-photo">
+              <i class="fas fa-image"></i>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <input type="text" class="form-input" placeholder="Send a message...">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-primary">Send Hangout Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal">
+    <div class="modal-content glass-dark">
+      <div class="modal-header">
+        <div class="modal-title">Edit Profile</div>
+        <button class="modal-close" onclick="closeModal('edit-profile-modal')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form">
+          <div style="position: relative; height: 150px; border-radius: 15px; overflow: hidden; margin-bottom: 60px;">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255, 107, 149, 0.3), rgba(164, 102, 255, 0.3)); display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-camera" style="font-size: 30px; opacity: 0.7;"></i>
+            </div>
+            <div style="position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #ff6b95, #a466ff); border: 4px solid rgba(255, 255, 255, 0.3); display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-user" style="font-size: 30px;"></i>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-input" value="Your Name">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Bio</label>
+            <textarea class="form-textarea">Living life one adventure at a time ✨</textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Age</label>
+            <input type="text" class="form-input" value="25">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Height</label>
+            <input type="text" class="form-input" value="5'8" (173 cm)">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" class="form-input" value="New York City">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Occupation</label>
+            <input type="text" class="form-input" value="Designer at Creative Studio">
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Mock Data and Dynamic Rendering ---
+    // Feed posts (mock data)
+    const mockPosts = [
+      {
+        id: 1,
+        username: 'Sophie Lane',
+        avatar: '',
+        time: '2 hours ago',
+        content: 'Just found this amazing little café downtown! Perfect vibes for a rainy afternoon ☕',
+        likes: 124,
+        comments: 18,
+        liked: false
+      },
+      {
+        id: 2,
+        username: 'Alex Morgan',
+        avatar: '',
+        time: '5 hours ago',
+        content: 'Feeling inspired today! Sometimes all you need is a change of scenery to get those creative juices flowing. What inspires you the most? ✨',
+        likes: 87,
+        comments: 32,
+        liked: false
+      },
+      {
+        id: 3,
+        username: 'Jamie Rivers',
+        avatar: '',
+        time: 'Yesterday',
+        content: 'Check out this sunset from our rooftop hangout last night! 🌅',
+        likes: 243,
+        comments: 42,
+        liked: false
+      }
+    ];
+
+    // Render mock posts in feed
+    function renderFeed() {
+      const container = document.getElementById('feed-container');
+      if (!container) return;
+      container.innerHTML = '';
+      mockPosts.forEach((post, i) => {
+        const delay = (i + 1) * 0.1;
+        container.insertAdjacentHTML('beforeend', `
+          <div class="post glass" style="animation-delay: ${delay}s">
+            <div class="post-header">
+              <div class="avatar"><i class="fas fa-user"></i></div>
+              <div class="user-info">
+                <div class="username">${post.username}</div>
+                <div class="time">${post.time}</div>
+              </div>
+              <i class="fas fa-ellipsis-v"></i>
+            </div>
+            <div class="post-content">
+              <p>${post.content}</p>
+            </div>
+            <div class="post-footer">
+              <div class="post-buttons">
+                <button class="post-button like-btn" onclick="likePost(${i})">
+                  <i class="${post.liked ? 'fas' : 'far'} fa-heart" ${post.liked ? 'style=\"color:#ff3366\"' : ''}></i>
+                  <span>${post.likes}</span>
+                </button>
+                <button class="post-button" onclick="alert('Comments feature coming soon!')">
+                  <i class="far fa-comment"></i>
+                  <span>${post.comments}</span>
+                </button>
+                <button class="post-button" onclick="alert('Share feature coming soon!')">
+                  <i class="fas fa-share"></i>
+                </button>
+              </div>
+              <button class="post-button" onclick="alert('Save feature coming soon!')">
+                <i class="far fa-bookmark"></i>
+              </button>
+            </div>
+          </div>
+        `);
+      });
+    }
+
+    // Toggle like for a post
+    function likePost(index) {
+      const post = mockPosts[index];
+      post.liked = !post.liked;
+      post.likes += post.liked ? 1 : -1;
+      renderFeed();
+    }
+
+    // Submit a new post from the create post modal
+    function submitPost() {
+      const textarea = document.getElementById('post-text');
+      if (!textarea) return;
+      const text = textarea.value.trim();
+      if (!text) return;
+      mockPosts.unshift({
+        id: Date.now(),
+        username: 'You',
+        avatar: '',
+        time: 'Just now',
+        content: text,
+        likes: 0,
+        comments: 0,
+        liked: false
+      });
+      textarea.value = '';
+      closeModal('create-post-modal');
+      renderFeed();
+    }
+
+    // Render feed on initial load
+    document.addEventListener('DOMContentLoaded', renderFeed);
+
+    // Show different views
+    function showView(viewId, navItem) {
+      // Hide all views
+      document.getElementById('feed-view').style.display = 'none';
+      document.getElementById('hangout-view').style.display = 'none';
+      document.getElementById('event-view').style.display = 'none';
+      document.getElementById('profile-view').style.display = 'none';
+      
+      // Show selected view
+      document.getElementById(viewId).style.display = 'block';
+      
+      // Update navigation
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      navItem.classList.add('active');
+    }
+    
+    // Modal functions
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'flex';
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+    
+    // Open fullscreen views
+    function openFullscreen(viewId) {
+      document.getElementById(viewId).style.display = 'flex';
+    }
+    
+    function closeFullscreen(viewId) {
+      document.getElementById(viewId).style.display = 'none';
+    }
+    
+    // Open notifications
+    function openNotificationsModal() {
+      openModal('notifications-modal');
+    }
+    
+    // Open chats
+    function openChats() {
+      openFullscreen('chat-list-view');
+    }
+    
+    // Open chat room
+    function openChatRoom(name) {
+      document.getElementById('chat-room-name').textContent = name;
+      closeFullscreen('chat-list-view');
+      openFullscreen('chat-room-view');
+    }
+    
+    // Close chat room
+    function closeChatRoom() {
+      closeFullscreen('chat-room-view');
+      openFullscreen('chat-list-view');
+    }
+    
+    // Send message
+    function sendMessage() {
+      const input = document.querySelector('.chat-input');
+      const message = input.value.trim();
+      
+      if (message) {
+        const chatMessages = document.getElementById('chat-messages');
+        const now = new Date();
+        const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+        
+        const messageEl = document.createElement('div');
+        messageEl.className = 'message sent';
+        messageEl.innerHTML = `
+          <div>${message}</div>
+          <div class="message-time">${time}</div>
+        `;
+        
+        chatMessages.appendChild(messageEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        input.value = '';
+      }
+    }
+    
+    // Toggle hangout availability
+    function toggleHangout(el) {
+      if (el.classList.contains('active')) {
+        el.classList.remove('active');
+      } else {
+        el.classList.add('active');
+        openModal('hangout-availability-modal');
+      }
+    }
+    
+    // Select option
+    function selectOption(el) {
+      const options = el.parentElement.querySelectorAll('.option');
+      options.forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    
+    // Set availability
+    function setAvailability() {
+      closeModal('hangout-availability-modal');
+      alert('You are now available for hangouts!');
+    }
+    
+    // Open create post modal
+    function openCreatePostModal() {
+      openModal('create-post-modal');
+    }
+    
+    // Open create event modal
+    function openCreateEventModal() {
+      openModal('create-event-modal');
+    }
+    
+    // Open profile modal
+    function openProfileModal(name, age, distance) {
+      document.getElementById('profile-modal-name').textContent = name;
+      document.getElementById('modal-name').textContent = name;
+      document.getElementById('modal-age').textContent = age;
+      document.getElementById('modal-distance').textContent = distance;
+      openModal('profile-modal');
+    }
+    
+    // Open edit profile modal
+    function openEditProfileModal() {
+      openModal('edit-profile-modal');
+    }
+    
+    // Toggle media preview
+    function toggleMediaPreview() {
+      const preview = document.getElementById('media-preview');
+      if (preview.style.display === 'none') {
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+    
+    // Handle like button clicks
+    document.querySelectorAll('.like-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        const count = this.querySelector('span');
+        
+        if (icon.classList.contains('far')) {
+          icon.classList.remove('far');
+          icon.classList.add('fas');
+          icon.style.color = '#ff3366';
+          count.textContent = parseInt(count.textContent) + 1;
+        } else {
+          icon.classList.remove('fas');
+          icon.classList.add('far');
+          icon.style.color = '';
+          count.textContent = parseInt(count.textContent) - 1;
+        }
+      });
+    });
+    
+    // Handle chat input enter key
+    document.querySelector('.chat-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    
+    // Animate posts on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const posts = document.querySelectorAll('.post');
+      posts.forEach(post => {
+        post.style.animationPlayState = 'running';
+      });
+    });
+  </script>
+  <!-- Firebase JS SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <!-- Firebase auth check & redirect -->
+  <script>
+    // TODO: Replace with your Firebase project configuration
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCmLLxdcys-PCN__UUCsTycuaqdVi_ULkc',
+      authDomain: 'driftyapk.firebaseapp.com',
+      projectId: 'driftyapk',
+      storageBucket: 'driftyapk.appspot.com',
+      messagingSenderId: '654037388109',
+      appId: '1:654037388109:android:4eafdba04ffe1ddfab4504',
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // If user is not authenticated, redirect to auth page
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'auth.html';
+      }
+    });
+  </script>
+
+  </body>
+</html>

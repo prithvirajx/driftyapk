@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drifty - Authentication</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase JS SDKs: MUST be loaded before any custom script uses firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <style>
     /* Base styles */
     * {
@@ -530,6 +533,37 @@
   </div>
   
   <script>
+    // Initialize Firebase FIRST
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCmLLxdcys-PCN__UUCsTycuaqdVi_ULkc',
+      authDomain: 'driftyapk.firebaseapp.com',
+      projectId: 'driftyapk',
+      storageBucket: 'driftyapk.appspot.com',
+      messagingSenderId: '654037388109',
+      appId: '1:654037388109:android:4eafdba04ffe1ddfab4504',
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    let recaptchaVerifier;
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCountryCode();
+      // Prevent zoom on input focus on iOS
+      const metaViewport = document.querySelector('meta[name=viewport]');
+      metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
+      // Allow only numeric input for phone
+      const phoneInput = document.getElementById('phoneInput');
+      phoneInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+      // Initialize and render reCAPTCHA only once
+      if (!recaptchaVerifier) {
+        recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+        recaptchaVerifier.render();
+      }
+    });
+    
     // Update country code when country is selected
     function updateCountryCode() {
       const select = document.getElementById('countrySelect');
@@ -563,12 +597,8 @@
       // Start timer
       startTimer();
       
-      // Send OTP using Firebase
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sendOtpBtn', { size: 'invisible' });
-        await window.recaptchaVerifier.render();
-      }
-      const appVerifier = window.recaptchaVerifier;
+      // Use the same verifier
+      const appVerifier = recaptchaVerifier;
       const fullPhone = `${countrySelect.value}${phoneInput.value.trim()}`;
       firebase.auth().signInWithPhoneNumber(fullPhone, appVerifier)
         .then((confirmation) => {
@@ -705,7 +735,7 @@
       
       // Resend OTP using Firebase
       const fullPhone = `${document.getElementById('countrySelect').value}${document.getElementById('phoneInput').value.trim()}`;
-      firebase.auth().signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
+      firebase.auth().signInWithPhoneNumber(fullPhone, recaptchaVerifier)
         .then((conf) => {
           window.confirmationResult = conf;
           alert('OTP has been resent to your phone');
@@ -772,41 +802,10 @@
         checkAllFieldsFilled();
       }
     });
-    
-    // Initialize country code on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      updateCountryCode();
-      
-      // Prevent zoom on input focus on iOS
-      const metaViewport = document.querySelector('meta[name=viewport]');
-      metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0';
-      
-      // Allow only numeric input for phone
-      const phoneInput = document.getElementById('phoneInput');
-      phoneInput.addEventListener('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
-      });
-    });
   </script>
-  <!-- Firebase JS SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <div id="recaptcha-container"></div>
 
   <script>
-    // Initialize Firebase (same config as index.html)
-    const firebaseConfig = {
-      apiKey: 'AIzaSyCmLLxdcys-PCN__UUCsTycuaqdVi_ULkc',
-      authDomain: 'driftyapk.firebaseapp.com',
-      projectId: 'driftyapk',
-      storageBucket: 'driftyapk.appspot.com',
-      messagingSenderId: '654037388109',
-      appId: '1:654037388109:android:4eafdba04ffe1ddfab4504',
-    };
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-
     // If user already authenticated, go straight to home
     firebase.auth().onAuthStateChanged(user => {
       if (user) {

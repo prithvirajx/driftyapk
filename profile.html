@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drifty - Create Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      background: linear-gradient(135deg, #ff6b95 0%, #a466ff 100%);
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      padding-bottom: 80px; /* Space for progress bar */
+    }
+    
+    /* Enhanced Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border-radius: 24px;
+    }
+    
+    /* Container */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 20px 0;
+    }
+    
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(to right, #fff, #ff6b95);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 10px 0;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    
+    /* Form Section */
+    .form-section {
+      margin-bottom: 30px;
+      padding: 25px;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .section-title i {
+      margin-right: 10px;
+      width: 30px;
+      height: 30px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 15px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s;
+    }
+    
+    .form-input:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+    
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .form-textarea {
+      width: 100%;
+      padding: 15px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: 16px;
+      outline: none;
+      resize: none;
+      min-height: 120px;
+      transition: all 0.3s;
+    }
+    
+    .form-textarea:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+    
+    .form-textarea::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .char-count {
+      text-align: right;
+      font-size: 12px;
+      margin-top: 5px;
+      opacity: 0.7;
+    }
+    
+    /* Profile Photo */
+    .profile-photo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .profile-photo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s;
+    }
+    
+    .profile-photo:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .profile-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    .photo-upload-btn {
+      margin-top: 10px;
+      padding: 8px 15px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .photo-upload-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .photo-input {
+      display: none;
+    }
+    
+    /* Additional Photos */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+    
+    .photo-item {
+      aspect-ratio: 1;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    
+    .photo-item:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    /* Interests and Options */
+    .options-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .option-item {
+      padding: 10px 15px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      user-select: none;
+    }
+    
+    .option-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .option-item.selected {
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.7), rgba(164, 102, 255, 0.7));
+      border-color: transparent;
+      box-shadow: 0 5px 15px rgba(255, 107, 149, 0.3);
+    }
+    
+    /* Radio Options */
+    .radio-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .radio-option {
+      flex: 1;
+      min-width: 100px;
+    }
+    
+    .radio-label {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .radio-label:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .radio-input {
+      display: none;
+    }
+    
+    .radio-input:checked + .radio-label {
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.7), rgba(164, 102, 255, 0.7));
+      border-color: transparent;
+      box-shadow: 0 5px 15px rgba(255, 107, 149, 0.3);
+    }
+    
+    .radio-custom {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      margin-right: 10px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .radio-input:checked + .radio-label .radio-custom::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      position: absolute;
+    }
+    
+    /* Progress Bar */
+    .progress-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 15px 20px;
+      z-index: 100;
+    }
+    
+    .progress-inner {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to right, #ff6b95, #a466ff);
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    
+    /* Save Button */
+    .save-btn-container {
+      text-align: center;
+      margin-top: 30px;
+      margin-bottom: 50px;
+    }
+    
+    .save-btn {
+      padding: 16px 40px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      border: none;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 20px rgba(255, 107, 149, 0.4);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    
+    .save-btn.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .save-btn.active:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(255, 107, 149, 0.5);
+    }
+    
+    .save-btn.active:active {
+      transform: translateY(-1px);
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .photo-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .radio-options {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .radio-option {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .form-section {
+        padding: 20px 15px;
+      }
+      
+      .profile-photo {
+        width: 120px;
+        height: 120px;
+      }
+      
+      .title {
+        font-size: 22px;
+      }
+      
+      .section-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">Drifty</div>
+      <h1 class="title">Create Your Profile</h1>
+      <p class="subtitle">Tell us about yourself to get started</p>
+    </div>
+    
+    <!-- Basic Info Section -->
+    <div class="form-section glass">
+      <h2 class="section-title">
+        <i class="fas fa-user"></i>
+        Basic Information
+      </h2>
+      
+      <div class="profile-photo-container">
+        <div class="profile-photo" id="profilePhotoPreview" onclick="document.getElementById('profilePhoto').click()">
+          <i class="fas fa-camera"></i>
+        </div>
+        <button class="photo-upload-btn" onclick="document.getElementById('profilePhoto').click()">
+          Upload Photo
+        </button>
+        <input type="file" id="profilePhoto" class="photo-input" accept="image/*" onchange="previewProfilePhoto(this)">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="fullName" placeholder="Enter your name" onchange="updateProgress()">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea class="form-textarea" id="bio" placeholder="Tell us about yourself..." maxlength="1000" onkeyup="countChars(this, 'bioCount'); updateProgress()"></textarea>
+        <div class="char-count"><span id="bioCount">0</span>/1000</div>
+      </div>
+    </div>
+    
+    <!-- Personal Details Section -->
+    <div class="form-section glass">
+      <h2 class="section-title">
+        <i class="fas fa-id-card"></i>
+        Personal Details
+      </h2>
+      
+      <div class="form-group">
+        <label class="form-label">Age</label>
+        <input type="number" class="form-input" id="age" placeholder="Your age" min="18" max="120" onchange="updateProgress()">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Height</label>
+        <input type="text" class="form-input" id="height" placeholder="Your height (e.g., 5'10\" or 178 cm)" onchange="updateProgress()">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" class="form-input" id="location" placeholder="City, Country" onchange="updateProgress()">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Occupation</label>
+        <input type="text" class="form-input" id="occupation" placeholder="What do you do?" onchange="updateProgress()">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">About Your Work</label>
+        <textarea class="form-textarea" id="workInfo" placeholder="Tell us about your work or studies..." onkeyup="updateProgress()"></textarea>
+      </div>
+    </div>
+    
+    <!-- Interests Section -->
+    <div class="form-section glass">
+      <h2 class="section-title">
+        <i class="fas fa-heart"></i>
+        Interests & Hobbies
+      </h2>
+      
+      <div class="form-group">
+        <label class="form-label">Select Your Interests</label>
+        <div class="options-container" id="interestsContainer">
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Travel</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Photography</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Music</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Art</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Sports</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Cooking</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Reading</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Movies</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Gaming</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Fitness</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Nature</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Technology</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Fashion</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Dancing</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Writing</div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Tell Us More About Your Interests</label>
+        <textarea class="form-textarea" id="interestsDescription" placeholder="Share more about your interests and hobbies..." maxlength="1000" onkeyup="countChars(this, 'interestsCount'); updateProgress()"></textarea>
+        <div class="char-count"><span id="interestsCount">0</span>/1000</div>
+      </div>
+    </div>
+    
+    <!-- Preferences Section -->
+    <div class="form-section glass">
+      <h2 class="section-title">
+        <i class="fas fa-sliders-h"></i>
+        Preferences & Lifestyle
+      </h2>
+      
+      <div class="form-group">
+        <label class="form-label">Do you smoke?</label>
+        <div class="radio-options">
+          <div class="radio-option">
+            <input type="radio" name="smoke" id="smoke-yes" class="radio-input" onchange="updateProgress()">
+            <label for="smoke-yes" class="radio-label">
+              <div class="radio-custom"></div>
+              Yes
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="smoke" id="smoke-no" class="radio-input" onchange="updateProgress()">
+            <label for="smoke-no" class="radio-label">
+              <div class="radio-custom"></div>
+              No
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="smoke" id="smoke-sometimes" class="radio-input" onchange="updateProgress()">
+            <label for="smoke-sometimes" class="radio-label">
+              <div class="radio-custom"></div>
+              Sometimes
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Do you drink?</label>
+        <div class="radio-options">
+          <div class="radio-option">
+            <input type="radio" name="drink" id="drink-yes" class="radio-input" onchange="updateProgress()">
+            <label for="drink-yes" class="radio-label">
+              <div class="radio-custom"></div>
+              Yes
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="drink" id="drink-no" class="radio-input" onchange="updateProgress()">
+            <label for="drink-no" class="radio-label">
+              <div class="radio-custom"></div>
+              No
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="drink" id="drink-sometimes" class="radio-input" onchange="updateProgress()">
+            <label for="drink-sometimes" class="radio-label">
+              <div class="radio-custom"></div>
+              Sometimes
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">How often do you exercise?</label>
+        <div class="radio-options">
+          <div class="radio-option">
+            <input type="radio" name="exercise" id="exercise-daily" class="radio-input" onchange="updateProgress()">
+            <label for="exercise-daily" class="radio-label">
+              <div class="radio-custom"></div>
+              Daily
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="exercise" id="exercise-weekly" class="radio-input" onchange="updateProgress()">
+            <label for="exercise-weekly" class="radio-label">
+              <div class="radio-custom"></div>
+              Weekly
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="exercise" id="exercise-rarely" class="radio-input" onchange="updateProgress()">
+            <label for="exercise-rarely" class="radio-label">
+              <div class="radio-custom"></div>
+              Rarely
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" name="exercise" id="exercise-never" class="radio-input" onchange="updateProgress()">
+            <label for="exercise-never" class="radio-label">
+              <div class="radio-custom"></div>
+              Never
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Looking For Section -->
+    <div class="form-section glass">
+      <h2 class="section-title">
+        <i class="fas fa-search"></i>
+        What Are You Looking For?
+      </h2>
+      
+      <div class="form-group">
+        <label class="form-label">Select all that apply</label>
+        <div class="options-container" id="lookingForContainer">
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Local Friend</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Travel Buddy</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Casual Friend</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Deep Talk</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Companion</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">True Love</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Culture Exchange</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Coffee Date</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Unexpected Moment</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">City Explorer</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Stranger to Soulmate</div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Languages You Speak</label>
+        <div class="options-container" id="languagesContainer">
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">English</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Indonesian</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Hindi</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Japanese</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Korean</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Spanish</div>
+          <div class="option-item" onclick="toggleSelection(this); updateProgress()">Chinese</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Additional Photos Section -->
+    <div class="form-section glass">
+      <h2 class="section-title">
+        <i class="fas fa-images"></i>
+        Additional Photos
+      </h2>
+      
+      <p style="margin-bottom: 15px; opacity: 0.8;">Add up to 6 photos to showcase your personality</p>
+      
+      <div class="photo-grid">
+        <div class="photo-item" onclick="document.getElementById('additionalPhoto1').click()">
+          <i class="fas fa-plus"></i>
+          <input type="file" id="additionalPhoto1" class="photo-input" accept="image/*" onchange="previewAdditionalPhoto(this, 0)">
+        </div>
+        <div class="photo-item" onclick="document.getElementById('additionalPhoto2').click()">
+          <i class="fas fa-plus"></i>
+          <input type="file" id="additionalPhoto2" class="photo-input" accept="image/*" onchange="previewAdditionalPhoto(this, 1)">
+        </div>
+        <div class="photo-item" onclick="document.getElementById('additionalPhoto3').click()">
+          <i class="fas fa-plus"></i>
+          <input type="file" id="additionalPhoto3" class="photo-input" accept="image/*" onchange="previewAdditionalPhoto(this, 2)">
+        </div>
+        <div class="photo-item" onclick="document.getElementById('additionalPhoto4').click()">
+          <i class="fas fa-plus"></i>
+          <input type="file" id="additionalPhoto4" class="photo-input" accept="image/*" onchange="previewAdditionalPhoto(this, 3)">
+        </div>
+        <div class="photo-item" onclick="document.getElementById('additionalPhoto5').click()">
+          <i class="fas fa-plus"></i>
+          <input type="file" id="additionalPhoto5" class="photo-input" accept="image/*" onchange="previewAdditionalPhoto(this, 4)">
+        </div>
+        <div class="photo-item" onclick="document.getElementById('additionalPhoto6').click()">
+          <i class="fas fa-plus"></i>
+          <input type="file" id="additionalPhoto6" class="photo-input" accept="image/*" onchange="previewAdditionalPhoto(this, 5)">
+        </div>
+      </div>
+    </div>
+    
+    <!-- Save Button -->
+    <div class="save-btn-container">
+      <button class="save-btn" id="saveBtn" onclick="saveProfile()">Save Profile</button>
+    </div>
+  </div>
+  
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-inner">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text">
+        <span>Profile completion</span>
+        <span id="progressPercent">0%</span>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Track uploaded photos
+    let profilePhotoUploaded = false;
+    let additionalPhotosUploaded = [false, false, false, false, false, false];
+    
+    // Preview profile photo
+    function previewProfilePhoto(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const preview = document.getElementById('profilePhotoPreview');
+          preview.innerHTML = `<img src="${e.target.result}" alt="Profile Photo">`;
+          profilePhotoUploaded = true;
+          updateProgress();
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+    
+    // Preview additional photos
+    function previewAdditionalPhoto(input, index) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const photoItems = document.querySelectorAll('.photo-item');
+          photoItems[index].innerHTML = `<img src="${e.target.result}" alt="Photo">`;
+          additionalPhotosUploaded[index] = true;
+          updateProgress();
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+    
+    // Toggle selection for options
+    function toggleSelection(element) {
+      element.classList.toggle('selected');
+    }
+    
+    // Count characters in textarea
+    function countChars(textarea, counterId) {
+      const counter = document.getElementById(counterId);
+      counter.textContent = textarea.value.length;
+    }
+    
+    // Calculate progress percentage
+    function calculateProgress() {
+      let totalFields = 15; // Total number of required fields/sections
+      let completedFields = 0;
+      
+      // Basic info
+      if (profilePhotoUploaded) completedFields++;
+      if (document.getElementById('fullName').value.trim()) completedFields++;
+      if (document.getElementById('bio').value.trim()) completedFields++;
+      
+      // Personal details
+      if (document.getElementById('age').value) completedFields++;
+      if (document.getElementById('height').value.trim()) completedFields++;
+      if (document.getElementById('location').value.trim()) completedFields++;
+      if (document.getElementById('occupation').value.trim()) completedFields++;
+      if (document.getElementById('workInfo').value.trim()) completedFields++;
+      
+      // Interests
+      const selectedInterests = document.querySelectorAll('#interestsContainer .selected');
+      if (selectedInterests.length > 0) completedFields++;
+      if (document.getElementById('interestsDescription').value.trim()) completedFields++;
+      
+      // Preferences
+      if (document.querySelector('input[name="smoke"]:checked')) completedFields++;
+      if (document.querySelector('input[name="drink"]:checked')) completedFields++;
+      if (document.querySelector('input[name="exercise"]:checked')) completedFields++;
+      
+      // Looking for
+      const selectedLookingFor = document.querySelectorAll('#lookingForContainer .selected');
+      if (selectedLookingFor.length > 0) completedFields++;
+      
+      // Languages
+      const selectedLanguages = document.querySelectorAll('#languagesContainer .selected');
+      if (selectedLanguages.length > 0) completedFields++;
+      
+      // Calculate percentage
+      return Math.round((completedFields / totalFields) * 100);
+    }
+    
+    // Update progress bar
+    function updateProgress() {
+      const progress = calculateProgress();
+      const progressFill = document.getElementById('progressFill');
+      const progressPercent = document.getElementById('progressPercent');
+      const saveBtn = document.getElementById('saveBtn');
+      
+      progressFill.style.width = `${progress}%`;
+      progressPercent.textContent = `${progress}%`;
+      
+      // Enable save button if profile is complete
+      if (progress === 100) {
+        saveBtn.classList.add('active');
+      } else {
+        saveBtn.classList.remove('active');
+      }
+    }
+    
+    // Save profile
+    function saveProfile() {
+      const progress = calculateProgress();
+      
+      if (progress === 100) {
+        // Here you would collect all the data and send it to your backend
+        alert('Profile saved successfully! Redirecting to app...');
+        
+        // In a real app, you would redirect to the main app
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } else {
+        alert(`Please complete your profile (${progress}% completed)`);
+      }
+    }
+    
+    // Initialize character counters on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      countChars(document.getElementById('bio'), 'bioCount');
+      countChars(document.getElementById('interestsDescription'), 'interestsCount');
+      updateProgress();
+    });
+  </script>
+</body>
+</html>

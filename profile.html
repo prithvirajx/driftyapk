@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drifty - Create Profile</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase JS SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
   <style>
     /* Base styles */
     * {
@@ -862,20 +867,128 @@
     }
     
     // Save profile
-    function saveProfile() {
+    async function saveProfile() {
       const progress = calculateProgress();
-      
-      if (progress === 100) {
-        // Here you would collect all the data and send it to your backend
-        alert('Profile saved successfully! Redirecting to app...');
-        
-        // In a real app, you would redirect to the main app
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1000);
-      } else {
+      if (progress !== 100) {
         alert(`Please complete your profile (${progress}% completed)`);
+        return;
       }
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert('Not authenticated!');
+        return;
+      }
+      const uid = user.uid;
+      // Collect form data
+      const fullName = document.getElementById('fullName').value.trim();
+      const bio = document.getElementById('bio').value.trim();
+      const age = document.getElementById('age').value;
+      const height = document.getElementById('height').value.trim();
+      const location = document.getElementById('location').value.trim();
+      const occupation = document.getElementById('occupation').value.trim();
+      const workInfo = document.getElementById('workInfo').value.trim();
+      // Interests
+      const interests = Array.from(document.querySelectorAll('#interestsContainer .selected')).map(e => e.textContent);
+      const interestsDescription = document.getElementById('interestsDescription').value.trim();
+      // Preferences
+      const smoke = document.querySelector('input[name="smoke"]:checked')?.id || '';
+      const drink = document.querySelector('input[name="drink"]:checked')?.id || '';
+      const exercise = document.querySelector('input[name="exercise"]:checked')?.id || '';
+      // Looking for
+      const lookingFor = Array.from(document.querySelectorAll('#lookingForContainer .selected')).map(e => e.textContent);
+      // Languages
+      const languages = Array.from(document.querySelectorAll('#languagesContainer .selected')).map(e => e.textContent);
+      // Profile photo
+      const profilePhotoFile = document.getElementById('profilePhoto').files[0];
+      // Additional photos
+      const additionalPhotoFiles = [];
+      for (let i = 1; i <= 6; i++) {
+        const file = document.getElementById('additionalPhoto' + i).files[0];
+        if (file) additionalPhotoFiles.push({file, index: i});
+      }
+      // Upload profile photo
+      let profilePhotoURL = '';
+      if (profilePhotoFile) {
+        const ref = storage.ref(`profiles/${uid}/profilePhoto.jpg`);
+        await ref.put(profilePhotoFile);
+        profilePhotoURL = await ref.getDownloadURL();
+      }
+      // Upload additional photos
+      const additionalPhotoURLs = [];
+      for (let i = 0; i < additionalPhotoFiles.length; i++) {
+        const {file, index} = additionalPhotoFiles[i];
+        const ref = storage.ref(`profiles/${uid}/additionalPhoto${index}.jpg`);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        additionalPhotoURLs[index - 1] = url;
+      }
+      // Save profile data to Firestore
+      const profileData = {
+        fullName, bio, age, height, location, occupation, workInfo,
+        interests, interestsDescription, smoke, drink, exercise,
+        lookingFor, languages, profilePhotoURL, additionalPhotoURLs
+      };
+      await db.collection('profiles').doc(uid).set(profileData);
+      alert('Profile saved successfully! Redirecting to app...');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+    }
+    
+    // Load profile if exists
+    async function loadProfile(uid) {
+      const doc = await db.collection('profiles').doc(uid).get();
+      if (!doc.exists) return;
+      const data = doc.data();
+      // Fill form fields (no UI changes, just set values)
+      document.getElementById('fullName').value = data.fullName || '';
+      document.getElementById('bio').value = data.bio || '';
+      document.getElementById('age').value = data.age || '';
+      document.getElementById('height').value = data.height || '';
+      document.getElementById('location').value = data.location || '';
+      document.getElementById('occupation').value = data.occupation || '';
+      document.getElementById('workInfo').value = data.workInfo || '';
+      // Interests
+      if (Array.isArray(data.interests)) {
+        document.querySelectorAll('#interestsContainer .option-item').forEach(el => {
+          if (data.interests.includes(el.textContent)) el.classList.add('selected');
+        });
+      }
+      document.getElementById('interestsDescription').value = data.interestsDescription || '';
+      // Preferences
+      if (data.smoke) document.getElementById(data.smoke).checked = true;
+      if (data.drink) document.getElementById(data.drink).checked = true;
+      if (data.exercise) document.getElementById(data.exercise).checked = true;
+      // Looking for
+      if (Array.isArray(data.lookingFor)) {
+        document.querySelectorAll('#lookingForContainer .option-item').forEach(el => {
+          if (data.lookingFor.includes(el.textContent)) el.classList.add('selected');
+        });
+      }
+      // Languages
+      if (Array.isArray(data.languages)) {
+        document.querySelectorAll('#languagesContainer .option-item').forEach(el => {
+          if (data.languages.includes(el.textContent)) el.classList.add('selected');
+        });
+      }
+      // Profile photo preview
+      if (data.profilePhotoURL) {
+        const preview = document.getElementById('profilePhotoPreview');
+        preview.innerHTML = `<img src="${data.profilePhotoURL}" alt="Profile Photo">`;
+        window.profilePhotoUploaded = true;
+      }
+      // Additional photos preview
+      if (Array.isArray(data.additionalPhotoURLs)) {
+        const photoItems = document.querySelectorAll('.photo-item');
+        data.additionalPhotoURLs.forEach((url, idx) => {
+          if (url && photoItems[idx]) {
+            photoItems[idx].innerHTML = `<img src="${url}" alt="Photo">`;
+            window.additionalPhotosUploaded[idx] = true;
+          }
+        });
+      }
+      // Update progress
+      updateProgress();
     }
     
     // Initialize character counters on page load

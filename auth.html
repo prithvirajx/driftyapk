@@ -756,7 +756,10 @@
     }
     
     // Verify OTP
+    let otpVerifying = false; // flag to avoid multiple submissions
     function verifyOTP() {
+      if (otpVerifying) return; // ignore if already verifying
+      otpVerifying = true;
       const otpInputs = document.querySelectorAll('.otp-input');
       let otp = '';
       
@@ -778,9 +781,11 @@
       }
       window.confirmationResult.confirm(otp)
         .then(() => {
+          otpVerifying = false; // reset flag on success (redirect follows)
           // Auth listener will handle redirect
         })
         .catch((error) => {
+          otpVerifying = false; // reset flag on error so user can retry
           alert(error.message);
           console.error(error);
         });

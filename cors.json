@@ -1,8 +1,8 @@
 [
-    {
-      "origin": ["http://localhost:8000"],
-      "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      "maxAgeSeconds": 3600,
-      "responseHeader": ["Content-Type", "Authorization"]
-    }
-  ]
+  {
+    "origin": ["https://lambent-genie-3808a2.netlify.app", "http://localhost:8000"],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Authorization", "x-goog-resumable"]
+  }
+]

@@ -795,14 +795,21 @@
     function previewProfilePhoto(input) {
       if (input.files && input.files[0]) {
         const reader = new FileReader();
-        
         reader.onload = function(e) {
           const preview = document.getElementById('profilePhotoPreview');
-          preview.innerHTML = `<img src="${e.target.result}" alt="Profile Photo">`;
+          // Hide camera icon if present
+          preview.querySelector('i')?.style.setProperty('display', 'none');
+          // Update or insert image element
+          let img = preview.querySelector('img');
+          if (!img) {
+            img = document.createElement('img');
+            img.alt = 'Profile Photo';
+            preview.prepend(img);
+          }
+          img.src = e.target.result;
           profilePhotoUploaded = true;
           updateProgress();
         }
-        
         reader.readAsDataURL(input.files[0]);
       }
     }
@@ -814,7 +821,17 @@
         
         reader.onload = function(e) {
           const photoItems = document.querySelectorAll('.photo-item');
-          photoItems[index].innerHTML = `<img src="${e.target.result}" alt="Photo">`;
+          const item = photoItems[index];
+          // Hide the plus icon
+          item.querySelector('i')?.style.setProperty('display', 'none');
+          // Update or insert preview image without removing the hidden input
+          let img = item.querySelector('img');
+          if (!img) {
+            img = document.createElement('img');
+            img.alt = 'Photo';
+            item.prepend(img);
+          }
+          img.src = e.target.result;
           additionalPhotosUploaded[index] = true;
           updateProgress();
         }
@@ -836,7 +853,7 @@
     
     // Calculate progress percentage
     function calculateProgress() {
-      let totalFields = 15; // Total number of required fields/sections
+      let totalFields = 14; // Total number of required fields/sections (fixed to match actual required fields)
       let completedFields = 0;
       
       // Basic info
@@ -870,7 +887,7 @@
       if (selectedLanguages.length > 0) completedFields++;
       
       // Calculate percentage
-      return Math.round((completedFields / totalFields) * 100);
+      return Math.min(100, Math.round((completedFields / totalFields) * 100));
     }
     
     // Update progress bar
@@ -879,25 +896,35 @@
       const progressFill = document.getElementById('progressFill');
       const progressPercent = document.getElementById('progressPercent');
       const saveBtn = document.getElementById('saveBtn');
-      
+      const allPhotosUploaded = additionalPhotosUploaded.every(v => v);
+  
       progressFill.style.width = `${progress}%`;
       progressPercent.textContent = `${progress}%`;
-      
-      // Enable save button if profile is complete
-      if (progress === 100) {
+  
+      // Enable save button only if profile is complete AND all 6 additional photos uploaded
+      if (progress === 100 && allPhotosUploaded) {
         saveBtn.classList.add('active');
+        saveBtn.disabled = false;
       } else {
         saveBtn.classList.remove('active');
+        saveBtn.disabled = true;
       }
     }
     
     // Save profile
     async function saveProfile() {
       const progress = calculateProgress();
-      if (progress !== 100) {
-        alert(`Please complete your profile (${progress}% completed)`);
+      const allPhotosUploaded = additionalPhotosUploaded.every(v => v);
+      if (progress !== 100 || !allPhotosUploaded) {
+        alert('Please complete your profile 100% and upload all 6 additional photos before saving.');
         return;
       }
+      const saveBtn = document.getElementById('saveBtn');
+      // Indicate saving state
+      saveBtn.textContent = 'Saving...';
+      saveBtn.classList.remove('active');
+      saveBtn.disabled = true;
+  
       const user = firebase.auth().currentUser;
       if (!user) {
         alert('Not authenticated!');
@@ -954,10 +981,14 @@
         lookingFor, languages, profilePhotoURL, additionalPhotoURLs
       };
       await db.collection('profiles').doc(uid).set(profileData);
-      alert('Profile saved successfully! Redirecting to app...');
-      setTimeout(() => {
+      alert('Profile saved successfully!');
+      // Turn button into "Done" button
+      saveBtn.textContent = 'Done';
+      saveBtn.classList.add('active');
+      saveBtn.disabled = false;
+      saveBtn.onclick = () => {
         window.location.href = 'index.html';
-      }, 1000);
+      };
     }
     
     // Load profile if exists
@@ -999,7 +1030,15 @@
       // Profile photo preview
       if (data.profilePhotoURL) {
         const preview = document.getElementById('profilePhotoPreview');
-        preview.innerHTML = `<img src="${data.profilePhotoURL}" alt="Profile Photo">`;
+        // Hide camera icon and show saved photo
+        preview.querySelector('i')?.style.setProperty('display', 'none');
+        let img = preview.querySelector('img');
+        if (!img) {
+          img = document.createElement('img');
+          img.alt = 'Profile Photo';
+          preview.prepend(img);
+        }
+        img.src = data.profilePhotoURL;
         window.profilePhotoUploaded = true;
       }
       // Additional photos preview
@@ -1007,7 +1046,15 @@
         const photoItems = document.querySelectorAll('.photo-item');
         data.additionalPhotoURLs.forEach((url, idx) => {
           if (url && photoItems[idx]) {
-            photoItems[idx].innerHTML = `<img src="${url}" alt="Photo">`;
+            // Hide plus icon and show saved image
+        photoItems[idx].querySelector('i')?.style.setProperty('display', 'none');
+        let img = photoItems[idx].querySelector('img');
+        if (!img) {
+          img = document.createElement('img');
+          img.alt = 'Photo';
+          photoItems[idx].prepend(img);
+        }
+        img.src = url;
             window.additionalPhotosUploaded[idx] = true;
           }
         });

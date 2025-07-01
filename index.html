@@ -1458,7 +1458,7 @@
         <button class="icon-btn" onclick="startOutgoingCall()">
           <i class="fas fa-phone"></i>
         </button>
-        <button class="icon-btn">
+        <button class="icon-btn" onclick="startVideoCall()">
           <i class="fas fa-video"></i>
         </button>
       </div>
@@ -2189,6 +2189,10 @@
 <script>
   function startOutgoingCall() {
     window.location.href = 'outgoing-call-ui.html';
+  }
+
+  function startVideoCall() {
+    window.location.href = 'video-call-ui.html';
   }
 </script>
 </html>

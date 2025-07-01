@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drifty - Video Call</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #ff6b95 0%, #a466ff 100%);
+      color: white;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Enhanced Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border-radius: 24px;
+    }
+    
+    /* Call Container */
+    .call-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.4) 0%, rgba(164, 102, 255, 0.4) 100%);
+      z-index: 100;
+    }
+    
+    /* Background Animation */
+    .bg-animation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.2), rgba(164, 102, 255, 0.2));
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: float 15s infinite ease-in-out;
+    }
+    
+    .bg-circle:nth-child(1) {
+      width: 300px;
+      height: 300px;
+      top: -150px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+    
+    .bg-circle:nth-child(2) {
+      width: 400px;
+      height: 400px;
+      bottom: -200px;
+      right: -150px;
+      animation-delay: 2s;
+    }
+    
+    .bg-circle:nth-child(3) {
+      width: 200px;
+      height: 200px;
+      top: 30%;
+      left: 10%;
+      animation-delay: 4s;
+    }
+    
+    .bg-circle:nth-child(4) {
+      width: 150px;
+      height: 150px;
+      bottom: 20%;
+      right: 20%;
+      animation-delay: 6s;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        transform: translateY(-20px) scale(1.05);
+      }
+    }
+    
+    /* Call Header */
+    .call-header {
+      text-align: center;
+      z-index: 10;
+      padding: 15px 25px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .call-status {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 5px;
+      opacity: 0.9;
+    }
+    
+    .call-timer {
+      font-size: 16px;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+    
+    /* Video Containers */
+    .video-area {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .remote-video-container {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .remote-video-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(255, 107, 149, 0.3), rgba(164, 102, 255, 0.3));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .remote-video-placeholder .profile-photo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      border: 3px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .remote-video-placeholder .profile-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .remote-video-placeholder .caller-name {
+      font-size: 24px;
+      font-weight: 600;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .remote-video-placeholder .call-type {
+      font-size: 16px;
+      opacity: 0.8;
+      margin-top: 5px;
+    }
+    
+    /* Local Video */
+    .local-video-container {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 120px;
+      height: 160px;
+      border-radius: 15px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      z-index: 20;
+      background: #333;
+    }
+    
+    .local-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* Outgoing Call Animation */
+    .outgoing-rings {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      z-index: 5;
+    }
+    
+    .ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      animation: ring-expand 2s infinite;
+    }
+    
+    .ring:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .ring:nth-child(2) {
+      animation-delay: 0.5s;
+    }
+    
+    .ring:nth-child(3) {
+      animation-delay: 1s;
+    }
+    
+    @keyframes ring-expand {
+      0% {
+        transform: scale(1);
+        opacity: 0.7;
+      }
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+    }
+    
+    /* Connecting Animation */
+    .connecting-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+      height: 20px;
+    }
+    
+    .dot {
+      width: 8px;
+      height: 8px;
+      background-color: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: dot-pulse 1.5s infinite;
+    }
+    
+    .dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .dot:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+    
+    .dot:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+    
+    @keyframes dot-pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.8;
+      }
+      50% {
+        transform: scale(1.5);
+        opacity: 1;
+      }
+    }
+    
+    /* Call Actions */
+    .call-actions {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      z-index: 10;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .call-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .call-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: scale(0);
+      transition: transform 0.5s ease;
+    }
+    
+    .call-btn:active::before {
+      transform: scale(1);
+    }
+    
+    .end-call-btn {
+      background: linear-gradient(135deg, #FF5252, #FF1744);
+    }
+    
+    .end-call-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(255, 23, 68, 0.4);
+    }
+    
+    /* In-Call Actions */
+    .in-call-actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      z-index: 10;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+      width: 100%;
+      max-width: 400px;
+      padding: 15px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .in-call-actions.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .action-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      font-size: 20px;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-3px);
+    }
+    
+    .action-btn.active {
+      background: rgba(255, 255, 255, 0.3);
+      color: #4CAF50;
+    }
+    
+    .end-call-btn {
+      background: linear-gradient(135deg, #FF5252, #FF1744);
+    }
+    
+    .end-call-btn:hover {
+      box-shadow: 0 5px 15px rgba(255, 23, 68, 0.4);
+    }
+    
+    .voice-call-btn {
+      background: linear-gradient(135deg, #2196F3, #03A9F4);
+    }
+    
+    .voice-call-btn:hover {
+      box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+    }
+    
+    /* Call End Message */
+    .call-end-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 20;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      padding: 30px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 90%;
+      max-width: 350px;
+      pointer-events: none;
+    }
+    
+    .call-end-message.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .call-end-message h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .call-end-message p {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    
+    /* Call States */
+    .call-container {
+      transition: all 0.5s ease;
+    }
+    
+    .call-container.outgoing .connecting-dots {
+      display: flex;
+    }
+    
+    .call-container.in-call .connecting-dots {
+      display: none;
+    }
+    
+    .call-container.outgoing .call-actions {
+      display: flex;
+    }
+    
+    .call-container.in-call .call-actions {
+      display: none;
+    }
+    
+    .call-container.ended {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    
+    .call-container.ended .call-actions,
+    .call-container.ended .in-call-actions,
+    .call-container.ended .connecting-dots {
+      display: none;
+    }
+    
+    /* Camera Off Indicator */
+    .camera-off-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .camera-off .camera-off-indicator {
+      display: block;
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 480px) {
+      .remote-video-placeholder .profile-photo {
+        width: 120px;
+        height: 120px;
+        font-size: 50px;
+      }
+      
+      .remote-video-placeholder .caller-name {
+        font-size: 22px;
+      }
+      
+      .call-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 22px;
+      }
+      
+      .action-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+      }
+      
+      .local-video-container {
+        width: 100px;
+        height: 133px;
+        bottom: 15px;
+        right: 15px;
+      }
+    }
+    
+    @media (min-width: 768px) {
+      .remote-video-placeholder .profile-photo {
+        width: 180px;
+        height: 180px;
+        font-size: 70px;
+      }
+      
+      .remote-video-placeholder .caller-name {
+        font-size: 28px;
+      }
+      
+      .local-video-container {
+        width: 160px;
+        height: 213px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Call Container -->
+  <div class="call-container outgoing" id="callContainer">
+    <!-- Background Animation -->
+    <div class="bg-animation">
+      <div class="bg-circle"></div>
+      <div class="bg-circle"></div>
+      <div class="bg-circle"></div>
+      <div class="bg-circle"></div>
+    </div>
+    
+    <!-- Call Header -->
+    <div class="call-header glass">
+      <div class="call-status">Video Calling...</div>
+      <div class="call-timer" id="callTimer"></div>
+    </div>
+    
+    <!-- Video Area -->
+    <div class="video-area">
+      <!-- Remote Video Container -->
+      <div class="remote-video-container">
+        <!-- Remote Video Placeholder (shown during outgoing call) -->
+        <div class="remote-video-placeholder">
+          <!-- Outgoing Call Animation -->
+          <div class="outgoing-rings">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="ring"></div>
+          </div>
+          
+          <div class="profile-photo">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b95;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23a466ff;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grad)'/%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Caller">
+          </div>
+          
+          <h2 class="caller-name">Emma Johnson</h2>
+          <p class="call-type">Video Call</p>
+          
+          <div class="connecting-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+        
+        <!-- Camera Off Indicator -->
+        <div class="camera-off-indicator">
+          <i class="fas fa-video-slash"></i> Camera is off
+        </div>
+      </div>
+      
+      <!-- Local Video (Your camera) -->
+      <div class="local-video-container" id="localVideoContainer">
+        <!-- Using a self-view image that simulates a camera feed -->
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 133'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23333;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23111;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='133' fill='url(%23grad)'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23555'/%3E%3Cpath d='M50 65 C 30 65 20 85 20 105 L 80 105 C 80 85 70 65 50 65 Z' fill='%23555'/%3E%3C/svg%3E" alt="Your camera" class="local-video">
+      </div>
+    </div>
+    
+    <!-- Call Actions (Outgoing State) -->
+    <div class="call-actions">
+      <button class="call-btn end-call-btn" onclick="endOutgoingCall()">
+        <i class="fas fa-phone-slash"></i>
+      </button>
+    </div>
+    
+    <!-- In-Call Actions (Hidden during outgoing) -->
+    <div class="in-call-actions" id="inCallActions">
+      <button class="action-btn" id="muteBtn" onclick="toggleMute()">
+        <i class="fas fa-microphone"></i>
+      </button>
+      <button class="action-btn" id="cameraBtn" onclick="toggleCamera()">
+        <i class="fas fa-video"></i>
+      </button>
+      <button class="action-btn" id="speakerBtn" onclick="toggleSpeaker()">
+        <i class="fas fa-volume-up"></i>
+      </button>
+      <button class="action-btn voice-call-btn" onclick="switchToVoice()">
+        <i class="fas fa-phone"></i>
+      </button>
+      <button class="action-btn end-call-btn" onclick="endCall()">
+        <i class="fas fa-phone-slash"></i>
+      </button>
+    </div>
+    
+    <!-- Call End Message -->
+    <div class="call-end-message glass" id="callEndMessage">
+      <h2>Call Ended</h2>
+      <p id="callEndReason">No answer</p>
+    </div>
+  </div>
+  
+  <script>
+    // DOM Elements
+    const callContainer = document.getElementById('callContainer');
+    const callTimer = document.getElementById('callTimer');
+    const inCallActions = document.getElementById('inCallActions');
+    const callEndMessage = document.getElementById('callEndMessage');
+    const callEndReason = document.getElementById('callEndReason');
+    const muteBtn = document.getElementById('muteBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const speakerBtn = document.getElementById('speakerBtn');
+    const localVideoContainer = document.getElementById('localVideoContainer');
+    
+    // Call Variables
+    let callDuration = 0;
+    let callTimerInterval;
+    let ringTimeout;
+    let isMuted = false;
+    let isCameraOn = true;
+    let isSpeakerOn = false;
+    
+    // Initialize outgoing call
+    function initOutgoingCall() {
+      // Set 30 second timeout for ringing
+      ringTimeout = setTimeout(() => {
+        // Auto end if not answered within 30 seconds
+        endOutgoingCall('No answer');
+      }, 30000);
+      
+      // Simulate call being answered after random time (for demo)
+      if (Math.random() > 0.5) {
+        setTimeout(() => {
+          callAnswered();
+        }, Math.random() * 5000 + 2000); // Between 2-7 seconds
+      }
+      
+      // Simulate camera feed with animation
+      simulateCameraFeed();
+    }
+    
+    // Simulate camera feed with subtle movement
+    function simulateCameraFeed() {
+      const localVideo = localVideoContainer.querySelector('img');
+      let scale = 1;
+      let direction = 1;
+      
+      setInterval(() => {
+        if (scale >= 1.05) direction = -1;
+        if (scale <= 0.95) direction = 1;
+        
+        scale += direction * 0.001;
+        localVideo.style.transform = `scale(${scale})`;
+      }, 50);
+    }
+    
+    // Format time for call duration
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // Call answered
+    function callAnswered() {
+      // Clear ringing timeout
+      clearTimeout(ringTimeout);
+      
+      // Update UI
+      callContainer.classList.remove('outgoing');
+      callContainer.classList.add('in-call');
+      document.querySelector('.call-status').textContent = 'Video Call in progress';
+      inCallActions.classList.add('active');
+      
+      // Start call timer
+      callDuration = 0;
+      callTimer.textContent = formatTime(callDuration);
+      callTimerInterval = setInterval(() => {
+        callDuration++;
+        callTimer.textContent = formatTime(callDuration);
+      }, 1000);
+      
+      // Replace placeholder with "connected" video
+      const remoteVideoContainer = document.querySelector('.remote-video-container');
+      remoteVideoContainer.innerHTML = `
+        <div class="remote-video-placeholder" style="background: linear-gradient(135deg, #333, #111);">
+          <div class="profile-photo">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b95;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23a466ff;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grad)'/%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Caller">
+          </div>
+        </div>
+        <div class="camera-off-indicator">
+          <i class="fas fa-video-slash"></i> Camera is off
+        </div>
+      `;
+      
+      // Simulate remote video connection after a delay
+      setTimeout(() => {
+        simulateRemoteVideo();
+      }, 1500);
+    }
+    
+    // Simulate remote video
+    function simulateRemoteVideo() {
+      const remoteVideoContainer = document.querySelector('.remote-video-container');
+      
+      // Create a gradient animation background to simulate video
+      remoteVideoContainer.innerHTML = `
+        <div style="width: 100%; height: 100%; position: relative; overflow: hidden; border-radius: 20px;">
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, #333, #222, #444, #222); background-size: 400% 400%; animation: gradientBG 15s ease infinite;"></div>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+            <div class="profile-photo" style="width: 100px; height: 100px; margin-bottom: 10px;">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b95;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23a466ff;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grad)'/%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Caller">
+            </div>
+            <h3 style="font-size: 18px; margin-bottom: 5px;">Emma Johnson</h3>
+          </div>
+        </div>
+        <div class="camera-off-indicator">
+          <i class="fas fa-video-slash"></i> Camera is off
+        </div>
+        <style>
+          @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        </style>
+      `;
+    }
+    
+    // End outgoing call
+    function endOutgoingCall(reason = 'Call cancelled') {
+      // Clear ringing timeout
+      clearTimeout(ringTimeout);
+      
+      // Update UI
+      callContainer.classList.remove('outgoing');
+      callContainer.classList.add('ended');
+      callEndMessage.classList.add('active');
+      callEndReason.textContent = reason;
+      
+      // Redirect after a delay
+      setTimeout(() => {
+        // In a real app, you would redirect to the previous page
+        // window.history.back();
+        // For demo, we'll just reload
+        window.history.back();
+      }, 3000);
+    }
+    
+    // End ongoing call
+    function endCall() {
+      // Clear timer interval
+      clearInterval(callTimerInterval);
+      
+      // Update UI
+      callContainer.classList.remove('in-call');
+      callContainer.classList.add('ended');
+      callEndMessage.classList.add('active');
+      callEndReason.textContent = 'Call ended';
+      
+      // Redirect after a delay
+      setTimeout(() => {
+        // In a real app, you would redirect to the previous page
+        // window.history.back();
+        // For demo, we'll just reload
+        window.history.back();
+      }, 3000);
+    }
+    
+    // Toggle mute
+    function toggleMute() {
+      isMuted = !isMuted;
+      if (isMuted) {
+        muteBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+        muteBtn.classList.add('active');
+      } else {
+        muteBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        muteBtn.classList.remove('active');
+      }
+    }
+    
+    // Toggle camera
+    function toggleCamera() {
+      isCameraOn = !isCameraOn;
+      if (!isCameraOn) {
+        cameraBtn.innerHTML = '<i class="fas fa-video-slash"></i>';
+        cameraBtn.classList.add('active');
+        localVideoContainer.classList.add('camera-off');
+        localVideoContainer.innerHTML = `
+          <div style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-video-slash" style="font-size: 24px; color: #fff;"></i>
+          </div>
+        `;
+      } else {
+        cameraBtn.innerHTML = '<i class="fas fa-video"></i>';
+        cameraBtn.classList.remove('active');
+        localVideoContainer.classList.remove('camera-off');
+        localVideoContainer.innerHTML = `
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 133'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23333;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23111;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='133' fill='url(%23grad)'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23555'/%3E%3Cpath d='M50 65 C 30 65 20 85 20 105 L 80 105 C 80 85 70 65 50 65 Z' fill='%23555'/%3E%3C/svg%3E" alt="Your camera" class="local-video">
+        `;
+        simulateCameraFeed();
+      }
+    }
+    
+    // Toggle speaker
+    function toggleSpeaker() {
+      isSpeakerOn = !isSpeakerOn;
+      if (isSpeakerOn) {
+        speakerBtn.innerHTML = '<i class="fas fa-volume-high"></i>';
+        speakerBtn.classList.add('active');
+      } else {
+        speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        speakerBtn.classList.remove('active');
+      }
+    }
+    
+    // Switch to voice call
+    function switchToVoice() {
+      alert('Switching to voice call...');
+      // In a real app, you would implement the switch to voice call functionality
+    }
+    
+    // Initialize call on page load
+    document.addEventListener('DOMContentLoaded', initOutgoingCall);
+  </script>
+</body>
+</html>

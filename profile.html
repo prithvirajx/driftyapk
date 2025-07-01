@@ -789,7 +789,7 @@
     
     // Track uploaded photos
     let profilePhotoUploaded = false;
-    let additionalPhotosUploaded = [false, false, false, false, false, false];
+    let additionalPhotosUploaded = Array(6).fill(false);
     
     // Preview profile photo
     function previewProfilePhoto(input) {
@@ -1039,7 +1039,7 @@
           preview.prepend(img);
         }
         img.src = data.profilePhotoURL;
-        window.profilePhotoUploaded = true;
+        profilePhotoUploaded = true;
       }
       // Additional photos preview
       if (Array.isArray(data.additionalPhotoURLs)) {
@@ -1055,7 +1055,7 @@
           photoItems[idx].prepend(img);
         }
         img.src = url;
-            window.additionalPhotosUploaded[idx] = true;
+            additionalPhotosUploaded[idx] = true;
           }
         });
       }

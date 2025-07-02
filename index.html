@@ -1377,6 +1377,12 @@
           </div>
           <div>Designer at Creative Studio</div>
         </div>
+        <div class="detail-item">
+          <div class="detail-icon">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <div></div>
+        </div>
       </div>
       
       <h3 style="text-align: left; margin-bottom: 10px;">Photos</h3>
@@ -1999,24 +2005,25 @@
       const textarea = document.getElementById('post-text');
       if (!textarea) return;
       const text = textarea.value.trim();
-      if (!text) return;
-      mockPosts.unshift({
-        id: Date.now(),
-        username: 'You',
-        avatar: '',
-        time: 'Just now',
-        content: text,
-        likes: 0,
-        comments: 0,
-        liked: false
-      });
-      textarea.value = '';
-      closeModal('create-post-modal');
-      renderFeed();
+      
+      if (text) {
+        const now = new Date();
+        const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+        mockPosts.unshift({
+          id: Date.now(),
+          username: 'You',
+          avatar: '',
+          time: 'Just now',
+          content: text,
+          likes: 0,
+          comments: 0,
+          liked: false
+        });
+        textarea.value = '';
+        closeModal('create-post-modal');
+        renderFeed();
+      }
     }
-
-    // Render feed on initial load
-    document.addEventListener('DOMContentLoaded', renderFeed);
 
     // Show different views
     function showView(viewId, navItem) {
@@ -2303,11 +2310,12 @@
 
         // Details (age, height, location, occupation)
         const detailItems = document.querySelectorAll('#profile-view .profile-details .detail-item div:last-child');
-        if (detailItems.length >= 4) {
+        if (detailItems.length >= 5) {
           detailItems[0].textContent = data.age ? `${data.age} years old` : '';
           detailItems[1].textContent = data.height || '';
           detailItems[2].textContent = data.location || '';
           detailItems[3].textContent = data.occupation || '';
+          detailItems[4].textContent = data.workInfo || '';
         }
 
         // Additional photos gallery

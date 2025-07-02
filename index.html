@@ -1154,7 +1154,7 @@
     
     <div class="section-title">People Nearby</div>
     
-    <div class="hangout-grid">
+    <div class="hangout-grid" id="hangout-grid" style="display:none;">
       <div class="hangout-card glass" onclick="openProfileModal('Emma', 24, '1.2 km')">
         <div class="hangout-img">
           <i class="fas fa-user"></i>
@@ -2068,11 +2068,17 @@
     
     // Toggle hangout availability
     function toggleHangout(el) {
+      const grid = document.getElementById('hangout-grid');
+      // If already active, clicking turns availability OFF
       if (el.classList.contains('active')) {
         el.classList.remove('active');
+        if (grid) {
+          grid.style.display = 'none';
+        }
       } else {
-        el.classList.add('active');
+        // Open the availability modal first; activation will follow validation
         openModal('hangout-availability-modal');
+        detectLocation();
       }
     }
     
@@ -2083,10 +2089,65 @@
       el.classList.add('selected');
     }
     
-    // Set availability
+    // Detect user's city and display it inside the modal
+    function detectLocation() {
+      const locationElem = document.querySelector('#hangout-availability-modal .detail-item div:last-child');
+      if (!navigator.geolocation || !locationElem) return;
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+            const data = await res.json();
+            const city =
+              data.address?.city ||
+              data.address?.town ||
+              data.address?.village ||
+              data.address?.state ||
+              `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+            locationElem.textContent = city;
+          } catch (err) {
+            locationElem.textContent = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+          }
+        },
+        () => {
+          locationElem.textContent = 'Location unavailable';
+        }
+      );
+    }
+
+    // Set availability after validating user input
     function setAvailability() {
+      const modal = document.getElementById('hangout-availability-modal');
+      const reasonInput = modal.querySelector('.form-input');
+      const reason = reasonInput.value.trim();
+      const selectedOption = modal.querySelector('.option.selected');
+      const locationText = modal.querySelector('.detail-item div:last-child').textContent.trim();
+
+      if (!reason) {
+        alert('Please enter what you are available for.');
+        return;
+      }
+      if (!selectedOption) {
+        alert('Please select how long you are available.');
+        return;
+      }
+      if (!locationText || locationText === 'Current Location') {
+        alert('Detecting your location, please wait a moment and try again.');
+        return;
+      }
+
+      const toggle = document.querySelector('#hangout-view .toggle');
+      const grid = document.getElementById('hangout-grid');
+      if (toggle && !toggle.classList.contains('active')) {
+        toggle.classList.add('active');
+      }
+      if (grid) {
+        grid.style.display = 'grid';
+      }
+
       closeModal('hangout-availability-modal');
-      alert('You are now available for hangouts!');
     }
     
     // Open create post modal

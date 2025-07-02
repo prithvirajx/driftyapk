@@ -2130,6 +2130,8 @@
         el.classList.remove('active');
         if (grid) {
           grid.style.display = 'none';
+    // Remove availability when toggle off
+    if (currentUid) db.collection('availability').doc(currentUid).delete().catch(()=>{});
         }
       } else {
         // Open the availability modal first; activation will follow validation
@@ -2153,6 +2155,8 @@
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude, longitude } = pos.coords;
+      currentLat = latitude;
+      currentLon = longitude;
           try {
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
             const data = await res.json();
@@ -2203,7 +2207,18 @@
         grid.style.display = 'grid';
       }
 
-      closeModal('hangout-availability-modal');
+      // Save availability in Firestore then fetch others
+  const durationHours = parseDuration(selectedOption.textContent);
+  db.collection('availability').doc(currentUid).set({
+    uid: currentUid,
+    lat: currentLat,
+    lon: currentLon,
+    reason,
+    durationHours,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(fetchNearbyPeople).catch(err => console.error('set availability error', err));
+
+  closeModal('hangout-availability-modal');
     }
     
     // Open create post modal
@@ -2298,6 +2313,107 @@
     // Firestore reference
     const db = firebase.firestore();
 
+// ---------------------
+// Hangout Nearby helpers
+// ---------------------
+let currentUid = null;           // set in auth listener
+let currentLat = null;
+let currentLon = null;
+
+// Haversine distance (km)
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+// Parse duration label (e.g. "3 hours", "All day") to hours
+function parseDuration(label) {
+  label = (label || '').toLowerCase();
+  if (label.includes('all')) return 24;
+  const m = label.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : 1;
+}
+
+// Fetch nearby available users and render cards
+async function fetchNearbyPeople() {
+  const grid = document.getElementById('hangout-grid');
+  if (!grid || currentLat === null || currentLon === null) return;
+  grid.innerHTML = '';
+
+  try {
+    const now = Date.now();
+    const snap = await db.collection('availability').get();
+    const items = [];
+    snap.forEach(doc => {
+      const d = doc.data() || {};
+      if (d.uid === currentUid || d.lat === undefined) return;
+      const ts = d.timestamp ? d.timestamp.toMillis() : 0;
+      const ttl = (d.durationHours || 1) * 3600 * 1000;
+      if (now - ts > ttl) return; // expired
+      const dist = haversineDistance(currentLat, currentLon, d.lat, d.lon);
+      if (dist <= 40) items.push({...d, distanceKm: dist});
+    });
+
+    // Fetch linked profiles in parallel
+    const results = await Promise.all(items.map(async it => {
+      const pdoc = await db.collection('profiles').doc(it.uid).get();
+      return {profile: pdoc.exists ? pdoc.data() : {}, ...it};
+    }));
+
+    results.forEach(createHangoutCard);
+  } catch (e) {
+    console.error('fetchNearbyPeople error', e);
+  }
+}
+
+// Build and append a card element
+function createHangoutCard({uid, profile, distanceKm, reason}) {
+  const grid = document.getElementById('hangout-grid');
+  if (!grid) return;
+  const name = profile.fullName || 'User';
+  const ageText = profile.age ? `, ${profile.age}` : '';
+  const imgHtml = profile.profilePhotoURL ? `<img src="${profile.profilePhotoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:15px;">` : '<i class="fas fa-user"></i>';
+  const card = document.createElement('div');
+  card.className = 'hangout-card glass';
+  card.innerHTML = `
+    <div class="hangout-img">${imgHtml}</div>
+    <div class="hangout-info">
+      <div class="hangout-name">${name}${ageText}</div>
+      <div class="hangout-details">
+        <span><i class="fas fa-map-marker-alt"></i> ${distanceKm.toFixed(1)} km</span>
+        <span><i class="fas fa-coffee"></i> ${reason}</span>
+      </div>
+    </div>`;
+  card.addEventListener('click', () => viewProfile(uid, distanceKm, reason));
+  grid.appendChild(card);
+}
+
+// Populate and open profile modal with real data
+async function viewProfile(uid, distanceKm, reason) {
+  try {
+    const doc = await db.collection('profiles').doc(uid).get();
+    if (!doc.exists) return;
+    const data = doc.data();
+    document.getElementById('profile-modal-name').textContent = data.fullName || 'User Profile';
+    document.getElementById('modal-name').textContent = data.fullName || 'User';
+    if (data.age) document.getElementById('modal-age').textContent = data.age;
+    document.getElementById('modal-distance').textContent = distanceKm.toFixed(1) + ' km';
+    const reasonEl = document.querySelector('#profile-modal .hangout-reason p');
+    if (reasonEl) reasonEl.textContent = reason || '';
+    // avatar
+    if (data.profilePhotoURL) {
+      const avatar = document.querySelector('#profile-modal .profile-avatar');
+      if (avatar) avatar.innerHTML = `<img src="${data.profilePhotoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+    openModal('profile-modal');
+  } catch (e) {
+    console.error('viewProfile error', e);
+  }
+}
+
     // Fetch profile info and populate UI in profile view
     function loadUserProfile(uid) {
       db.collection('profiles').doc(uid).get().then(doc => {
@@ -2370,6 +2486,7 @@
       if (!user) {
         window.location.href = 'auth.html';
       } else {
+        currentUid = user.uid;
         loadUserProfile(user.uid);
       }
     });

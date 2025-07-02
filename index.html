@@ -2132,6 +2132,8 @@
           grid.style.display = 'none';
     // Remove availability when toggle off
     if (currentUid) db.collection('availability').doc(currentUid).delete().catch(()=>{});
+    stopNearbyListener();
+    if (autoOffTimer) { clearTimeout(autoOffTimer); autoOffTimer = null; }
         }
       } else {
         // Open the availability modal first; activation will follow validation
@@ -2216,7 +2218,11 @@
     reason,
     durationHours,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(fetchNearbyPeople).catch(err => console.error('set availability error', err));
+  }).then(() => {
+    fetchNearbyPeople();
+    startNearbyListener();
+    scheduleAutoOff(durationHours, Date.now());
+  }).catch(err => console.error('set availability error', err));
 
   closeModal('hangout-availability-modal');
     }
@@ -2319,6 +2325,8 @@
 let currentUid = null;           // set in auth listener
 let currentLat = null;
 let currentLon = null;
+let nearbyListenerUnsub = null;  // Firestore listener for nearby people
+let autoOffTimer = null;         // timer to auto-disable availability
 
 // Haversine distance (km)
 function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -2327,6 +2335,71 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+// Start real-time listener for availability collection
+function startNearbyListener() {
+  if (nearbyListenerUnsub) return; // already listening
+  nearbyListenerUnsub = db.collection('availability').onSnapshot(() => {
+    fetchNearbyPeople();
+  });
+}
+
+function stopNearbyListener() {
+  if (nearbyListenerUnsub) {
+    nearbyListenerUnsub();
+    nearbyListenerUnsub = null;
+  }
+}
+
+function scheduleAutoOff(durationHours, timestampMillis) {
+  if (autoOffTimer) clearTimeout(autoOffTimer);
+  const ttl = durationHours * 3600 * 1000;
+  const remaining = ttl - (Date.now() - timestampMillis);
+  if (remaining > 0) {
+    autoOffTimer = setTimeout(() => deactivateAvailability(), remaining);
+  }
+}
+
+function deactivateAvailability() {
+  const toggle = document.querySelector('#hangout-view .toggle');
+  const grid = document.getElementById('hangout-grid');
+  if (toggle) toggle.classList.remove('active');
+  if (grid) grid.style.display = 'none';
+  stopNearbyListener();
+  if (currentUid) db.collection('availability').doc(currentUid).delete().catch(()=>{});
+}
+
+// Restore availability state on page load
+function restoreAvailability() {
+  if (!currentUid) return;
+  db.collection('availability').doc(currentUid).get().then(doc => {
+    if (!doc.exists) return;
+    const data = doc.data() || {};
+    const ts = data.timestamp ? data.timestamp.toMillis() : 0;
+    const ttl = (data.durationHours || 1) * 3600 * 1000;
+    const now = Date.now();
+    if (now - ts >= ttl) {
+      // expired – clean up in Firestore
+      db.collection('availability').doc(currentUid).delete().catch(()=>{});
+      return;
+    }
+
+    const toggle = document.querySelector('#hangout-view .toggle');
+    const grid = document.getElementById('hangout-grid');
+    if (toggle && !toggle.classList.contains('active')) toggle.classList.add('active');
+    if (grid) grid.style.display = 'grid';
+
+    // Acquire current location, then fetch people & start listener
+    navigator.geolocation.getCurrentPosition(pos => {
+      currentLat = pos.coords.latitude;
+      currentLon = pos.coords.longitude;
+      fetchNearbyPeople();
+      startNearbyListener();
+    });
+
+    scheduleAutoOff(data.durationHours || 1, ts);
+  });
 }
 
 // Parse duration label (e.g. "3 hours", "All day") to hours
@@ -2488,6 +2561,7 @@ async function viewProfile(uid, distanceKm, reason) {
       } else {
         currentUid = user.uid;
         loadUserProfile(user.uid);
+        restoreAvailability();
       }
     });
   </script>

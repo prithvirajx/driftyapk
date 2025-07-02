@@ -566,6 +566,34 @@
       opacity: 0.7;
     }
     
+    .profile-tags {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .tags-section {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .tags-section i {
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+    .tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag-chip {
+      background: rgba(255,255,255,0.15);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    
     .profile-details {
       display: flex;
       flex-direction: column;
@@ -985,6 +1013,27 @@
     .mb-20 {
       margin-bottom: 20px;
     }
+      /* Profile overrides */
+    .profile-header {
+      height: auto;
+      overflow: visible;
+      background: none;
+    }
+    .profile-header .profile-cover {
+      display: none;
+    }
+    .profile-avatar {
+      position: relative;
+      bottom: 0;
+      left: 0;
+      transform: none;
+      margin: 0 auto 20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -1288,18 +1337,18 @@
       <h2 class="profile-name">Your Name</h2>
       <p class="profile-bio">Living life one adventure at a time ✨</p>
       
-      <div class="profile-stats">
-        <div class="stat">
-          <div class="stat-value">248</div>
-          <div class="stat-label">Friends</div>
+      <div class="profile-tags">
+        <div class="tags-section">
+          <i class="fas fa-language"></i>
+          <div id="languages-list" class="tags-list"></div>
         </div>
-        <div class="stat">
-          <div class="stat-value">36</div>
-          <div class="stat-label">Events</div>
+        <div class="tags-section">
+          <i class="fas fa-star"></i>
+          <div id="interests-list" class="tags-list"></div>
         </div>
-        <div class="stat">
-          <div class="stat-value">124</div>
-          <div class="stat-label">Hangouts</div>
+        <div class="tags-section">
+          <i class="fas fa-heart"></i>
+          <div id="lookingfor-list" class="tags-list"></div>
         </div>
       </div>
       
@@ -2222,6 +2271,7 @@
   <!-- Firebase JS SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <!-- Firebase auth check & redirect -->
   <script>
@@ -2238,10 +2288,81 @@
       firebase.initializeApp(firebaseConfig);
     }
 
+    // Firestore reference
+    const db = firebase.firestore();
+
+    // Fetch profile info and populate UI in profile view
+    function loadUserProfile(uid) {
+      db.collection('profiles').doc(uid).get().then(doc => {
+        if (!doc.exists) return;
+        const data = doc.data() || {};
+
+        // Basic info
+        if (data.fullName) document.querySelector('#profile-view .profile-name').textContent = data.fullName;
+        if (data.bio) document.querySelector('#profile-view .profile-bio').textContent = data.bio;
+
+        // Details (age, height, location, occupation)
+        const detailItems = document.querySelectorAll('#profile-view .profile-details .detail-item div:last-child');
+        if (detailItems.length >= 4) {
+          detailItems[0].textContent = data.age ? `${data.age} years old` : '';
+          detailItems[1].textContent = data.height || '';
+          detailItems[2].textContent = data.location || '';
+          detailItems[3].textContent = data.occupation || '';
+        }
+
+        // Additional photos gallery
+        if (Array.isArray(data.additionalPhotoURLs)) {
+          const galleryItems = document.querySelectorAll('#profile-view .profile-gallery .gallery-item');
+          data.additionalPhotoURLs.forEach((url, idx) => {
+            if (url && galleryItems[idx]) {
+              galleryItems[idx].innerHTML = `<img src="${url}" alt="Photo" style="width:100%;height:100%;object-fit:cover;">`;
+            }
+          });
+        }
+
+        // Avatar photo
+        if (data.profilePhotoURL) {
+          const avatar = document.querySelector('#profile-view .profile-avatar');
+          if (avatar) {
+            avatar.innerHTML = `<img src="${data.profilePhotoURL}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+          }
+        }
+
+        // Languages and other tags
+        const setChips = (arr, containerId) => {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          container.innerHTML = '';
+          (arr || []).forEach(item => {
+            const span = document.createElement('span');
+            span.className = 'tag-chip';
+            span.textContent = item;
+            container.appendChild(span);
+          });
+        };
+        setChips(data.languages, 'languages-list');
+        setChips(data.lookingFor, 'lookingfor-list');
+
+        // Interests description (single string)
+        const interestsContainer = document.getElementById('interests-list');
+        if (interestsContainer) {
+          interestsContainer.innerHTML = '';
+          if (data.interestsDescription) {
+            const span = document.createElement('span');
+            span.className = 'tag-chip';
+            span.textContent = data.interestsDescription;
+            interestsContainer.appendChild(span);
+          }
+        }
+      }).catch(err => console.error('Failed to load profile', err));
+    }
+
     // If user is not authenticated, redirect to auth page
     firebase.auth().onAuthStateChanged(user => {
       if (!user) {
         window.location.href = 'auth.html';
+      } else {
+        loadUserProfile(user.uid);
       }
     });
   </script>

@@ -1451,7 +1451,7 @@
     </div>
     
     <div class="fullscreen-content">
-      <div class="chat-list">
+      <div class="chat-list" id="chat-list">
         <div class="chat-item" onclick="openChatRoom('Emma')">
           <div class="avatar">
             <i class="fas fa-user"></i>
@@ -2049,6 +2049,64 @@
     }
     
     // ---------------------------
+// Outgoing hangout request status listener
+function startOutgoingRequestStatusListener() {
+  if (!currentUid) return;
+  if (window._outgoingUnsub) return;
+  window._outgoingUnsub = db.collection('hangoutRequests')
+    .where('fromUid', '==', currentUid)
+    .where('status', 'in', ['accepted', 'declined'])
+    .orderBy('timestamp', 'desc')
+    .onSnapshot(snapshot => {
+      const list = document.getElementById('notification-list');
+      if (!list) return;
+      list.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const item = document.createElement('div');
+        item.className = 'notification-item';
+        if (data.status === 'accepted') {
+          item.innerHTML = `<div class="notification-content"><strong>${data.toName || 'User'}</strong> accepted your hangout request. You are now connected!</div>`;
+        } else if (data.status === 'declined') {
+          item.innerHTML = `<div class="notification-content"><strong>${data.toName || 'User'}</strong> declined your hangout request.</div>`;
+        }
+        list.appendChild(item);
+      });
+    });
+}
+
+// ---------------------------
+// Chat rooms listener
+function startChatRoomsListener() {
+  if (!currentUid) return;
+  if (window._chatRoomsUnsub) return;
+  window._chatRoomsUnsub = db.collection('chatRooms')
+    .where('participants', 'array-contains', currentUid)
+    .orderBy('lastUpdated', 'desc')
+    .onSnapshot(snapshot => {
+      const list = document.getElementById('chat-list');
+      if (!list) return;
+      list.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const otherUid = data.participants.find(uid => uid !== currentUid);
+        const otherName = data.names?.[otherUid] || 'User';
+        const item = document.createElement('div');
+        item.className = 'chat-item';
+        item.onclick = () => openChatRoom(otherName);
+        item.innerHTML = `
+          <div class="avatar"><i class="fas fa-user"></i></div>
+          <div class="chat-info">
+            <div class="chat-name">${otherName}</div>
+            <div class="chat-preview">Hey ${otherName} 👋</div>
+          </div>
+          <div class="chat-time">now</div>`;
+        list.appendChild(item);
+      });
+    });
+}
+
+// ---------------------------
 // Hangout request operations
 // ---------------------------
 function sendHangoutRequest() {
@@ -2061,11 +2119,13 @@ function sendHangoutRequest() {
   const toUid = modalElem?.dataset.targetUid;
   if (!toUid || !currentUid) { alert('Unable to send request'); return; }
   const fromName = document.querySelector('#profile-view .profile-name')?.textContent || 'Someone';
+  const toName = modalElem?.querySelector('#profile-modal-name')?.textContent || 'User';
   db.collection('hangoutRequests').add({
     fromUid: currentUid,
     toUid,
     message,
     fromName,
+    toName,
     status: 'pending',
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
@@ -2107,12 +2167,60 @@ function startHangoutRequestListener() {
     });
 }
 
-function acceptRequest(reqId) {
-  // TODO: implement later
-  db.collection('hangoutRequests').doc(reqId).update({status: 'accepted'}).catch(()=>{});
+async function acceptRequest(reqId) {
+  try {
+    const reqRef = db.collection('hangoutRequests').doc(reqId);
+    const reqSnap = await reqRef.get();
+    if (!reqSnap.exists) return;
+    const req = reqSnap.data();
+    const otherUid = req.fromUid;
+    const otherName = req.fromName || 'User';
+
+    // Create / ensure chat room document
+    const roomId = [currentUid, otherUid].sort().join('_');
+    const myName = document.querySelector('#profile-view .profile-name')?.textContent || 'You';
+    await db.collection('chatRooms').doc(roomId).set({
+      participants: [currentUid, otherUid],
+      names: {[currentUid]: myName, [otherUid]: otherName},
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge: true});
+
+    // Seed first two messages
+    const roomRef = db.collection('chatRooms').doc(roomId).collection('messages');
+    await roomRef.add({
+      senderUid: currentUid,
+      text: `Hey ${otherName} 👋`,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await roomRef.add({
+      senderUid: otherUid,
+      text: `Hi ${myName} 🙂`,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Update request status
+    await reqRef.update({status: 'accepted'});
+
+    // Update UI – replace buttons with text
+    const btnContainer = event.target.closest('.notification-actions');
+    if (btnContainer) {
+      btnContainer.innerHTML = '<span style="opacity:0.8;">Connected! Check chats.</span>';
+    }
+  } catch (e) {
+    console.error('acceptRequest error', e);
+  }
 }
-function declineRequest(reqId) {
-  db.collection('hangoutRequests').doc(reqId).update({status: 'declined'}).catch(()=>{});
+async function declineRequest(reqId) {
+  try {
+    const reqRef = db.collection('hangoutRequests').doc(reqId);
+    await reqRef.update({status: 'declined'});
+    const btnContainer = event.target.closest('.notification-actions');
+    if (btnContainer) {
+      btnContainer.innerHTML = '<span style="opacity:0.8;">You declined the request</span>';
+    }
+  } catch (e) {
+    console.error('declineRequest error', e);
+  }
 }
 
 function closeModal(modalId) {
@@ -2661,6 +2769,8 @@ async function viewProfile(uid, distanceKm, reason) {
         loadUserProfile(user.uid);
         restoreAvailability();
         startHangoutRequestListener();
+        startChatRoomsListener();
+        startOutgoingRequestStatusListener();
       }
     });
   </script>

@@ -1573,7 +1573,7 @@
       </div>
       
       <div class="modal-body">
-        <div class="notification-list">
+        <div class="notification-list" id="notification-list">
           <div class="notification-item">
             <div class="avatar">
               <i class="fas fa-user"></i>
@@ -1843,13 +1843,13 @@
           </div>
           
           <div class="form-group">
-            <input type="text" class="form-input" placeholder="Send a message...">
+            <input id="hangout-message-input" type="text" class="form-input" placeholder="Write a short message..." maxlength="200">
           </div>
         </div>
       </div>
       
       <div class="modal-footer">
-        <button class="btn btn-primary">Send Hangout Request</button>
+        <button class="btn btn-primary" onclick="sendHangoutRequest()">Send Hangout Request</button>
       </div>
     </div>
   </div>
@@ -2048,7 +2048,74 @@
       document.getElementById(modalId).style.display = 'flex';
     }
     
-    function closeModal(modalId) {
+    // ---------------------------
+// Hangout request operations
+// ---------------------------
+function sendHangoutRequest() {
+  const input = document.getElementById('hangout-message-input');
+  if (!input) return;
+  const message = input.value.trim();
+  if (!message) { alert('Please enter a message'); return; }
+  if (message.length > 200) { alert('Message must be under 200 characters'); return; }
+  const modalElem = document.getElementById('profile-modal');
+  const toUid = modalElem?.dataset.targetUid;
+  if (!toUid || !currentUid) { alert('Unable to send request'); return; }
+  const fromName = document.querySelector('#profile-view .profile-name')?.textContent || 'Someone';
+  db.collection('hangoutRequests').add({
+    fromUid: currentUid,
+    toUid,
+    message,
+    fromName,
+    status: 'pending',
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    input.value = '';
+    closeModal('profile-modal');
+    alert('Hangout request sent');
+  }).catch(err => {
+    console.error('sendHangoutRequest error', err);
+    alert('Failed to send request');
+  });
+}
+
+function startHangoutRequestListener() {
+  if (!currentUid) return;
+  if (window._requestUnsub) return; // avoid multiple listeners
+  window._requestUnsub = db.collection('hangoutRequests')
+    .where('toUid', '==', currentUid)
+    .where('status', '==', 'pending')
+    .onSnapshot(snapshot => {
+      const list = document.getElementById('notification-list');
+      if (!list) return;
+      list.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const item = document.createElement('div');
+        item.className = 'notification-item';
+        item.innerHTML = `
+          <div class="avatar"><i class="fas fa-user"></i></div>
+          <div class="notification-content">
+            <div><strong>${data.fromName || 'Someone'}</strong> sent you a hangout request</div>
+            <div style="margin-top:6px;font-size:13px;opacity:0.8;">${data.message}</div>
+            <div class="notification-actions">
+              <button class="btn btn-primary" onclick="acceptRequest('${doc.id}')">Accept</button>
+              <button class="btn btn-secondary" onclick="declineRequest('${doc.id}')">Decline</button>
+            </div>
+          </div>`;
+        list.appendChild(item);
+      });
+    });
+}
+
+function acceptRequest(reqId) {
+  // TODO: implement later
+  db.collection('hangoutRequests').doc(reqId).update({status: 'accepted'}).catch(()=>{});
+}
+function declineRequest(reqId) {
+  db.collection('hangoutRequests').doc(reqId).update({status: 'declined'}).catch(()=>{});
+}
+
+function closeModal(modalId) {
       document.getElementById(modalId).style.display = 'none';
     }
     
@@ -2475,6 +2542,10 @@ async function viewProfile(uid, distanceKm, reason) {
     if (data.age) document.getElementById('modal-age').textContent = data.age;
     document.getElementById('modal-distance').textContent = distanceKm.toFixed(1) + ' km';
 
+    // store target uid for request sending
+    const modalElem = document.getElementById('profile-modal');
+    if (modalElem) modalElem.dataset.targetUid = uid;
+
     // Bio
     const bioEl = document.querySelector('#profile-modal .profile-bio');
     if (bioEl) bioEl.textContent = data.bio || '';
@@ -2589,6 +2660,7 @@ async function viewProfile(uid, distanceKm, reason) {
         currentUid = user.uid;
         loadUserProfile(user.uid);
         restoreAvailability();
+        startHangoutRequestListener();
       }
     });
   </script>

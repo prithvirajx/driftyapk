@@ -2474,12 +2474,39 @@ async function viewProfile(uid, distanceKm, reason) {
     document.getElementById('modal-name').textContent = data.fullName || 'User';
     if (data.age) document.getElementById('modal-age').textContent = data.age;
     document.getElementById('modal-distance').textContent = distanceKm.toFixed(1) + ' km';
+
+    // Bio
+    const bioEl = document.querySelector('#profile-modal .profile-bio');
+    if (bioEl) bioEl.textContent = data.bio || '';
+
     const reasonEl = document.querySelector('#profile-modal .hangout-reason p');
     if (reasonEl) reasonEl.textContent = reason || '';
     // avatar
     if (data.profilePhotoURL) {
       const avatar = document.querySelector('#profile-modal .profile-avatar');
       if (avatar) avatar.innerHTML = `<img src="${data.profilePhotoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+
+    // Details (height, occupation, work)
+    const modalDetailItems = document.querySelectorAll('#profile-modal .profile-details .detail-item div:last-child');
+    if (modalDetailItems.length >= 3) {
+      modalDetailItems[0].textContent = data.height || '';
+      modalDetailItems[1].textContent = data.occupation || '';
+      modalDetailItems[2].textContent = data.workInfo || '';
+    }
+
+    // Additional photos in modal
+    if (Array.isArray(data.additionalPhotoURLs)) {
+      const photoItems = document.querySelectorAll('#profile-modal .profile-photos .profile-photo');
+      photoItems.forEach((el, idx) => {
+        const url = data.additionalPhotoURLs[idx];
+        if (url) {
+          el.innerHTML = `<img src="${url}" alt="Photo" style="width:100%;height:100%;object-fit:cover;">`;
+        } else {
+          // restore placeholder icon if no url
+          el.innerHTML = '<i class="fas fa-image"></i>';
+        }
+      });
     }
     openModal('profile-modal');
   } catch (e) {

@@ -2093,7 +2093,7 @@ function startChatRoomsListener() {
         const otherName = data.names?.[otherUid] || 'User';
         const item = document.createElement('div');
         item.className = 'chat-item';
-        item.onclick = () => openChatRoom(otherName);
+        item.onclick = () => openChatRoom(doc.id, otherName);
         item.innerHTML = `
           <div class="avatar"><i class="fas fa-user"></i></div>
           <div class="chat-info">
@@ -2246,56 +2246,83 @@ function closeModal(modalId) {
       openFullscreen('chat-list-view');
     }
     
-    // Open chat room
-    function openChatRoom(name) {
-      document.getElementById('chat-room-name').textContent = name;
-      closeFullscreen('chat-list-view');
-      openFullscreen('chat-room-view');
-      // Persist chat room state across refreshes
-      localStorage.setItem('inChatRoom', 'true');
-      localStorage.setItem('currentChatName', name);
-    }
+    let currentRoomId = null;
+
+// Format time helper
+function _fmtTime(date) {
+  if (!date) return '';
+  const h = date.getHours();
+  const m = date.getMinutes();
+  return h + ':' + (m < 10 ? '0' : '') + m;
+}
+
+// Open chat room with realtime listener
+function openChatRoom(roomId, otherName) {
+      currentRoomId = roomId;
+  document.getElementById('chat-room-name').textContent = otherName;
+  closeFullscreen('chat-list-view');
+  openFullscreen('chat-room-view');
+
+  // Clear existing messages
+  const messagesEl = document.getElementById('chat-messages');
+  if (messagesEl) messagesEl.innerHTML = '';
+
+  // Cancel previous listener
+  if (window._msgUnsub) { window._msgUnsub(); window._msgUnsub = null; }
+
+  // Subscribe to messages
+  window._msgUnsub = db.collection('chatRooms').doc(roomId).collection('messages')
+    .orderBy('timestamp')
+    .onSnapshot(snap => {
+      if (!messagesEl) return;
+      messagesEl.innerHTML = '';
+      snap.forEach(doc => {
+        const data = doc.data();
+        const el = document.createElement('div');
+        el.className = 'message ' + (data.senderUid === currentUid ? 'sent' : 'received');
+        el.innerHTML = `<div>${data.text}</div><div class="message-time">${_fmtTime(data.timestamp?.toDate())}</div>`;
+        messagesEl.appendChild(el);
+      });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+
+  // Persist state
+  localStorage.setItem('inChatRoom', 'true');
+  localStorage.setItem('currentChatName', otherName);
+  localStorage.setItem('currentRoomId', roomId);
+}
     
     // Close chat room
-    function closeChatRoom() {
+function closeChatRoom() {
+  if (window._msgUnsub) { window._msgUnsub(); window._msgUnsub = null; }
+  currentRoomId = null;
       closeFullscreen('chat-room-view');
       openFullscreen('chat-list-view');
       // Clear persisted chat room state
       localStorage.removeItem('inChatRoom');
       localStorage.removeItem('currentChatName');
-    }
+      localStorage.removeItem('currentRoomId');
+}
 
-    // Restore chat room view if it was active before refresh
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('inChatRoom') === 'true') {
-        const storedName = localStorage.getItem('currentChatName') || 'User';
-        // Delay to ensure other views have rendered
-        openChatRoom(storedName);
-      }
-    });
-    
     // Send message
     function sendMessage() {
       const input = document.querySelector('.chat-input');
       const message = input.value.trim();
       
-      if (message) {
-        const chatMessages = document.getElementById('chat-messages');
-        const now = new Date();
-        const time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-        
-        const messageEl = document.createElement('div');
-        messageEl.className = 'message sent';
-        messageEl.innerHTML = `
-          <div>${message}</div>
-          <div class="message-time">${time}</div>
-        `;
-        
-        chatMessages.appendChild(messageEl);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        input.value = '';
-      }
-    }
+      if (!message || !currentRoomId) return;
+
+  // Optimistic clear
+  input.value = '';
+
+  const roomRef = db.collection('chatRooms').doc(currentRoomId);
+  roomRef.collection('messages').add({
+    senderUid: currentUid,
+    text: message,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    roomRef.update({lastUpdated: firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+  }).catch(err => console.error('sendMessage error', err));
+}
     
     // Toggle hangout availability
     function toggleHangout(el) {
@@ -2771,6 +2798,13 @@ async function viewProfile(uid, distanceKm, reason) {
         startHangoutRequestListener();
         startChatRoomsListener();
         startOutgoingRequestStatusListener();
+        // Restore open chat room if previously active
+        const wasInRoom = localStorage.getItem('inChatRoom');
+        const storedRoomId = localStorage.getItem('currentRoomId');
+        const storedOtherName = localStorage.getItem('currentChatName');
+        if (wasInRoom === 'true' && storedRoomId && storedOtherName) {
+          openChatRoom(storedRoomId, storedOtherName);
+        }
       }
     });
   </script>

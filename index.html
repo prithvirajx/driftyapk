@@ -800,9 +800,10 @@
     }
     
     .chat-room {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      height: 100%;
+      overflow: hidden;
     }
     
     .chat-messages {
@@ -816,6 +817,7 @@
     
     .message {
       max-width: 80%;
+      word-break: break-word;
       padding: 12px 15px;
       border-radius: 18px;
       position: relative;
@@ -843,6 +845,7 @@
     
     .chat-footer {
       padding: 15px;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
       display: flex;
       align-items: center;
       gap: 10px;

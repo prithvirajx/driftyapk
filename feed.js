@@ -9,6 +9,16 @@ function loadPostsUIStyles() {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     doc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
       const clone = el.cloneNode(true);
+      // If it's an inline <style> tag, strip any global rules that could clash
+      if (clone.tagName === 'STYLE') {
+        let css = clone.textContent || '';
+        // Remove rules targeting body / html or the generic .container class
+        css = css.replace(/(?:html,\s*)?body\s*\{[\s\S]*?\}/g, '');
+        css = css.replace(/\.container\s*\{[\s\S]*?\}/g, '');
+        // Skip injection if nothing remains
+        if (!css.trim()) return;
+        clone.textContent = css;
+      }
       clone.setAttribute('data-posts-ui-styles', '');
       document.head.appendChild(clone);
     });

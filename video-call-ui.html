@@ -577,6 +577,9 @@
       }
     }
   </style>
+  <!-- Firebase JS SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <!-- Call Container -->
@@ -687,6 +690,163 @@
     let isMuted = false;
     let isCameraOn = true;
     let isSpeakerOn = false;
+
+    /* ======= WebRTC + Firestore setup ======= */
+    const params = new URLSearchParams(window.location.search);
+    const callId = params.get('callId');
+    const isCaller = params.get('caller') === 'true';
+
+    // Firebase (only if callId is present)
+    let db;
+    let callDoc;
+    let offerCandidatesCollection;
+    let answerCandidatesCollection;
+
+    let pc;
+    let localStream;
+    let localVideoEl;
+    let remoteVideoEl;
+
+    async function initCall() {
+      if (!callId) {
+        // No real call – fallback to demo simulation
+        initOutgoingCall();
+        return;
+      }
+
+      const firebaseConfig = {
+        apiKey: 'AIzaSyCmLLxdcys-PCN__UUCsTycuaqdVi_ULkc',
+        authDomain: 'driftyapk.firebaseapp.com',
+        projectId: 'driftyapk',
+        storageBucket: 'driftyapk.appspot.com',
+        messagingSenderId: '654037388109',
+        appId: '1:654037388109:android:4eafdba04ffe1ddfab4504'
+      };
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.firestore();
+
+      callDoc = db.collection('videoCalls').doc(callId);
+      offerCandidatesCollection = callDoc.collection('offerCandidates');
+      answerCandidatesCollection = callDoc.collection('answerCandidates');
+
+      // Prepare video elements
+      localVideoContainer.innerHTML = '';
+      localVideoEl = document.createElement('video');
+      localVideoEl.autoplay = true;
+      localVideoEl.muted = true;
+      localVideoEl.playsInline = true;
+      localVideoContainer.appendChild(localVideoEl);
+
+      const remoteVideoContainer = document.querySelector('.remote-video-container');
+      remoteVideoContainer.innerHTML = '';
+      remoteVideoEl = document.createElement('video');
+      remoteVideoEl.autoplay = true;
+      remoteVideoEl.playsInline = true;
+      remoteVideoContainer.appendChild(remoteVideoEl);
+
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          const data = event.candidate.toJSON();
+          (isCaller ? offerCandidatesCollection : answerCandidatesCollection).add(data);
+        }
+      };
+
+      pc.ontrack = (event) => {
+        if (remoteVideoEl.srcObject !== event.streams[0]) {
+          remoteVideoEl.srcObject = event.streams[0];
+          realCallAnswered();
+        }
+      };
+
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideoEl.srcObject = localStream;
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      } catch (err) {
+        alert('Could not access camera/microphone');
+        console.error(err);
+        endCall();
+        return;
+      }
+
+      if (isCaller) {
+        await setupCaller();
+      } else {
+        await setupCallee();
+      }
+    }
+
+    async function setupCaller() {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await callDoc.update({ offer: offer.toJSON() });
+
+      callDoc.onSnapshot(snap => {
+        const data = snap.data();
+        if (data?.answer && !pc.currentRemoteDescription) {
+          pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+        }
+        if (data?.ended) {
+          endCall();
+        }
+      });
+
+      answerCandidatesCollection.onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'added') {
+            pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+          }
+        });
+      });
+    }
+
+    async function setupCallee() {
+      const callData = (await callDoc.get()).data();
+      if (!callData?.offer) {
+        alert('Call data missing');
+        endCall();
+        return;
+      }
+      await pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await callDoc.update({ answer: answer.toJSON(), answered: true });
+
+      offerCandidatesCollection.onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'added') {
+            pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+          }
+        });
+      });
+
+      callDoc.onSnapshot(snap => {
+        const d = snap.data();
+        if (d?.ended) endCall();
+      });
+    }
+
+    function realCallAnswered() {
+      clearTimeout(ringTimeout);
+      callContainer.classList.remove('outgoing');
+      callContainer.classList.add('in-call');
+      document.querySelector('.call-status').textContent = 'Video Call in progress';
+      inCallActions.classList.add('active');
+
+      callDuration = 0;
+      callTimer.textContent = formatTime(callDuration);
+      clearInterval(callTimerInterval);
+      callTimerInterval = setInterval(() => {
+        callDuration++;
+        callTimer.textContent = formatTime(callDuration);
+      }, 1000);
+    }
     
     // Initialize outgoing call
     function initOutgoingCall() {
@@ -814,30 +974,28 @@
         window.history.back();
       }, 3000);
     }
-    
+
     // End ongoing call
     function endCall() {
-      // Clear timer interval
+      try {
+        if (callDoc) callDoc.update({ ended: true });
+      } catch (_) {}
+      if (pc) pc.close();
+      if (localStream) localStream.getTracks().forEach(t => t.stop());
       clearInterval(callTimerInterval);
-      
-      // Update UI
-      callContainer.classList.remove('in-call');
+      callContainer.classList.remove('in-call', 'outgoing');
       callContainer.classList.add('ended');
       callEndMessage.classList.add('active');
       callEndReason.textContent = 'Call ended';
-      
-      // Redirect after a delay
-      setTimeout(() => {
-        // In a real app, you would redirect to the previous page
-        // window.history.back();
-        // For demo, we'll just reload
-        window.history.back();
-      }, 3000);
+      setTimeout(() => window.history.back(), 3000);
     }
-    
+
     // Toggle mute
     function toggleMute() {
       isMuted = !isMuted;
+      if (localStream) {
+        localStream.getAudioTracks().forEach(t => (t.enabled = !isMuted));
+      }
       if (isMuted) {
         muteBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
         muteBtn.classList.add('active');
@@ -846,27 +1004,23 @@
         muteBtn.classList.remove('active');
       }
     }
-    
+
     // Toggle camera
     function toggleCamera() {
       isCameraOn = !isCameraOn;
+
+      if (localStream) {
+        localStream.getVideoTracks().forEach(t => (t.enabled = isCameraOn));
+      }
+
       if (!isCameraOn) {
         cameraBtn.innerHTML = '<i class="fas fa-video-slash"></i>';
         cameraBtn.classList.add('active');
         localVideoContainer.classList.add('camera-off');
-        localVideoContainer.innerHTML = `
-          <div style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center;">
-            <i class="fas fa-video-slash" style="font-size: 24px; color: #fff;"></i>
-          </div>
-        `;
       } else {
         cameraBtn.innerHTML = '<i class="fas fa-video"></i>';
         cameraBtn.classList.remove('active');
         localVideoContainer.classList.remove('camera-off');
-        localVideoContainer.innerHTML = `
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 133'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23333;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23111;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='133' fill='url(%23grad)'/%3E%3Ccircle cx='50' cy='40' r='20' fill='%23555'/%3E%3Cpath d='M50 65 C 30 65 20 85 20 105 L 80 105 C 80 85 70 65 50 65 Z' fill='%23555'/%3E%3C/svg%3E" alt="Your camera" class="local-video">
-        `;
-        simulateCameraFeed();
       }
     }
     
@@ -889,7 +1043,7 @@
     }
     
     // Initialize call on page load
-    document.addEventListener('DOMContentLoaded', initOutgoingCall);
+    document.addEventListener('DOMContentLoaded', initCall);
   </script>
 </body>
 </html>

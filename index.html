@@ -1037,6 +1037,52 @@
       overflow: hidden;
       border: 4px solid rgba(255, 255, 255, 0.3);
     }
+    /* Profile action buttons */
+    #profile-view .profile-actions {
+      display: flex;
+      width: 80%;
+      max-width: 340px;
+      margin: 15px auto 25px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    #profile-view .profile-header.glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #profile-view .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 0;
+      background: transparent;
+      color: white;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.3s, transform 0.3s;
+      box-shadow: none;
+    }
+    #profile-view .action-btn:first-child {
+      border-right: 2px solid rgba(255, 255, 255, 0.28);
+    }
+    #profile-view .action-btn i {
+      font-size: 18px;
+    }
+    #profile-view .action-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body>
@@ -1331,13 +1377,15 @@
   <div id="profile-view" class="container" style="display: none;">
     <div class="profile-header glass">
       <div class="profile-cover"></div>
-      <div class="profile-avatar">
-        <i class="fas fa-user"></i>
+      <div class="profile-avatar"><img src="https://firebasestorage.googleapis.com/v0/b/driftyapk.firebasestorage.app/o/profiles%2FPrejBhojaXZbwTiGTNsOH0ILyJ63%2FprofilePhoto.jpg?alt=media&amp;token=657a2ae4-8429-464d-844d-8ca5178eaf5d" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+      <div class="profile-actions">
+        <button class="action-btn"><i class="fas fa-user-circle"></i><span>Profile</span></button>
+        <button class="action-btn"><i class="fas fa-th-large"></i><span>Posts</span></button>
       </div>
+      <h2 class="profile-name">Prithvi Raj</h2>
     </div>
     
     <div class="profile-info">
-      <h2 class="profile-name">Your Name</h2>
       <p class="profile-bio">Living life one adventure at a time ✨</p>
       
       <div class="profile-tags">
@@ -2085,7 +2133,7 @@ function startOutgoingRequestStatusListener() {
 // Chat rooms listener
 function startChatRoomsListener() {
   if (!currentUid) return;
-  if (window._chatRoomsUnsub) return;
+  if (window._chatRoomsUnsub) return; // avoid multiple listeners
   window._chatRoomsUnsub = db.collection('chatRooms')
     .where('participants', 'array-contains', currentUid)
     .orderBy('lastUpdated', 'desc')
@@ -2642,8 +2690,12 @@ function restoreAvailability() {
 
     const toggle = document.querySelector('#hangout-view .toggle');
     const grid = document.getElementById('hangout-grid');
-    if (toggle && !toggle.classList.contains('active')) toggle.classList.add('active');
-    if (grid) grid.style.display = 'grid';
+    if (toggle && !toggle.classList.contains('active')) {
+      toggle.classList.add('active');
+    }
+    if (grid) {
+      grid.style.display = 'grid';
+    }
 
     // Acquire current location, then fetch people & start listener
     navigator.geolocation.getCurrentPosition(pos => {
@@ -2743,7 +2795,9 @@ async function viewProfile(uid, distanceKm, reason) {
     // avatar
     if (data.profilePhotoURL) {
       const avatar = document.querySelector('#profile-modal .profile-avatar');
-      if (avatar) avatar.innerHTML = `<img src="${data.profilePhotoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      if (avatar) {
+        avatar.innerHTML = `<img src="${data.profilePhotoURL}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      }
     }
 
     // Details (height, occupation, work)

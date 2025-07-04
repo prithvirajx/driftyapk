@@ -2554,6 +2554,7 @@ function closeChatRoom() {
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
   <!-- Firebase auth check & redirect -->
   <script>
@@ -2562,7 +2563,7 @@ function closeChatRoom() {
       apiKey: 'AIzaSyCmLLxdcys-PCN__UUCsTycuaqdVi_ULkc',
       authDomain: 'driftyapk.firebaseapp.com',
       projectId: 'driftyapk',
-      storageBucket: 'driftyapk.appspot.com',
+      storageBucket: 'driftyapk.firebasestorage.app',
       messagingSenderId: '654037388109',
       appId: '1:654037388109:android:4eafdba04ffe1ddfab4504',
     };
@@ -2876,4 +2877,5 @@ async function viewProfile(uid, distanceKm, reason) {
     alert('Chat options coming soon!');
   }
 </script>
+  <script src="feed.js"></script>
 </html>

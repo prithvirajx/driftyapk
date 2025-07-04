@@ -1083,6 +1083,17 @@
       background: rgba(255, 255, 255, 0.1);
       transform: translateY(-2px);
     }
+    .profile-divider-glass {
+      width: 100vw;
+      margin: 20px calc(50% - 50vw) 20px calc(50% - 50vw);
+      border: none;
+      height: 2px;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 2px 16px 0 rgba(255,255,255,0.08);
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -1379,12 +1390,14 @@
       <div class="profile-cover"></div>
       <div class="profile-avatar"><img src="https://firebasestorage.googleapis.com/v0/b/driftyapk.firebasestorage.app/o/profiles%2FPrejBhojaXZbwTiGTNsOH0ILyJ63%2FprofilePhoto.jpg?alt=media&amp;token=657a2ae4-8429-464d-844d-8ca5178eaf5d" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
       <div class="profile-actions">
-        <button class="action-btn"><i class="fas fa-user-circle"></i><span>Profile</span></button>
-        <button class="action-btn"><i class="fas fa-th-large"></i><span>Posts</span></button>
+        <button id="profileTabBtn" class="action-btn"><i class="fas fa-user-circle"></i><span>Profile</span></button>
+        <button id="postsTabBtn" class="action-btn"><i class="fas fa-th-large"></i><span>Posts</span></button>
       </div>
       <h2 class="profile-name">Prithvi Raj</h2>
     </div>
-    
+    <hr class="profile-divider-glass">
+    <!-- Posts iframe (hidden by default) -->
+    <div id="posts-container" style="display:none;width:100%;"></div>
     <div class="profile-info">
       <p class="profile-bio">Living life one adventure at a time ✨</p>
       
@@ -2935,6 +2948,49 @@ async function viewProfile(uid, distanceKm, reason) {
   function openChatOptions() {
     alert('Chat options coming soon!');
   }
+
+  // Toggle between profile info and posts view
+  document.addEventListener('DOMContentLoaded', function() {
+    const profileBtn = document.getElementById('profileTabBtn');
+    const postsBtn   = document.getElementById('postsTabBtn');
+    const profileInfo = document.querySelector('#profile-view .profile-info');
+    const postsContainer = document.getElementById('posts-container');
+
+    if (profileBtn && postsBtn && profileInfo && postsContainer) {
+      profileBtn.addEventListener('click', function() {
+        // Show profile info, hide posts
+        profileInfo.style.display = 'block';
+        postsContainer.style.display = 'none';
+      });
+
+      postsBtn.addEventListener('click', function() {
+        // Hide profile info
+        profileInfo.style.display = 'none';
+        // Load posts UI on first click
+        if (!postsContainer.dataset.loaded) {
+          fetch('posts_ui.html')
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(html, 'text/html');
+              // Inject body markup
+              postsContainer.innerHTML = doc.body.innerHTML;
+              // Inject inline <style> and external <link rel="stylesheet">
+              const headEls = doc.head.querySelectorAll('style, link[rel="stylesheet"]');
+              headEls.forEach(el => {
+                // Avoid duplicates (rudimentary check by outerHTML)
+                if (![...document.head.children].some(h => h.outerHTML === el.outerHTML)) {
+                  document.head.appendChild(el.cloneNode(true));
+                }
+              });
+              postsContainer.dataset.loaded = 'true';
+            })
+            .catch(console.error);
+        }
+        postsContainer.style.display = 'block';
+      });
+    }
+  });
 </script>
   <script src="feed.js"></script>
 </html>

@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drifty - Post</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    html, body {
+      min-height: 100%;
+      background: linear-gradient(135deg, #ff6b95 0%, #a466ff 100%);
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      padding: 0;
+      margin: 0;
+    }
+    
+    body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    /* Enhanced Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border-radius: 24px;
+    }
+    
+    /* Post Container */
+    .post-container {
+      width: 100%;
+      max-width: 450px;
+      margin: 0 auto 30px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.15),
+        0 0 20px rgba(255, 255, 255, 0.1);
+      position: relative;
+      transform: translateZ(0);
+    }
+    
+    /* Glassmorphism glow effect */
+    .post-container::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      right: -1px;
+      bottom: -1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+      border-radius: 24px;
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    /* Post Header */
+    .post-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .post-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .post-user-info {
+      flex: 1;
+    }
+    
+    .post-username {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+    
+    .post-location {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    .post-options {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    
+    .post-options:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Post Content */
+    .post-content {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: #000;
+      overflow: hidden;
+    }
+    
+    .post-media {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    
+    /* Video Controls */
+    .video-controls {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .post-content:hover .video-controls {
+      opacity: 1;
+    }
+    
+    .video-control-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .video-control-btn:hover {
+      background: rgba(0, 0, 0, 0.7);
+      transform: scale(1.05);
+    }
+    
+    .video-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .video-progress-bar {
+      height: 100%;
+      width: 30%;
+      background: #ff6b95;
+    }
+    
+    /* Media Type Indicator */
+    .media-type {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    /* Post Actions */
+    .post-actions {
+      display: flex;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .post-action {
+      display: flex;
+      align-items: center;
+      margin-right: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .post-action:hover {
+      transform: scale(1.05);
+    }
+    
+    .post-action i {
+      margin-right: 8px;
+      font-size: 20px;
+    }
+    
+    .post-action.liked i {
+      color: #ff6b95;
+    }
+    
+    .post-action-count {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .post-action-spacer {
+      flex: 1;
+    }
+    
+    .post-action-save {
+      font-size: 20px;
+    }
+    
+    /* Post Stats */
+    .post-stats {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .post-likes {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .post-timestamp {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    /* Post Caption */
+    .post-caption {
+      padding: 14px 18px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .post-caption-username {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    
+    .post-hashtags {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+    }
+    
+    /* Post Comments Section */
+    .comments-section {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+      border-top: 0px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .comments-section.active {
+      max-height: 500px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Post Comments */
+    .post-comments {
+      padding: 14px 18px;
+    }
+    
+    .post-comment-count {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    
+    .post-comment {
+      display: flex;
+      margin-bottom: 12px;
+    }
+    
+    .post-comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .post-comment-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .post-comment-content {
+      flex: 1;
+    }
+    
+    .post-comment-text {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    
+    .post-comment-username {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    
+    .post-comment-actions {
+      display: flex;
+      align-items: center;
+      margin-top: 4px;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    .post-comment-time {
+      margin-right: 16px;
+    }
+    
+    .post-comment-like {
+      cursor: pointer;
+    }
+    
+    /* Add Comment */
+    .post-add-comment {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+    }
+    
+    .post-add-comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: linear-gradient(135deg, #ff6b95, #a466ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .post-add-comment-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .post-add-comment-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      padding: 8px 0;
+    }
+    
+    .post-add-comment-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .post-add-comment-submit {
+      background: transparent;
+      border: none;
+      color: #a466ff;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 8px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    
+    .post-add-comment-submit:hover {
+      opacity: 1;
+    }
+    
+    /* Animations */
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    
+    .pulse {
+      animation: pulse 0.3s;
+    }
+    
+    /* Comment Button Animation */
+    @keyframes commentBounce {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+    }
+    
+    .comment-bounce {
+      animation: commentBounce 0.4s;
+    }
+    
+    /* Floating animation for posts */
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+    
+    .post-container {
+      animation: float 6s infinite ease-in-out;
+    }
+    
+    .post-container:nth-child(2) {
+      animation-delay: 2s;
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+      
+      .post-container {
+        border-radius: 20px;
+        margin-bottom: 20px;
+      }
+    }
+    
+    @media (min-width: 768px) {
+      .post-container {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Photo Post -->
+  <div class="post-container glass">
+    <!-- Post Header -->
+    <div class="post-header">
+      <div class="post-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b95;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23a466ff;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+      </div>
+      <div class="post-user-info">
+        <div class="post-username">emma_johnson</div>
+        <div class="post-location">Tokyo, Japan</div>
+      </div>
+      <div class="post-options">
+        <i class="fas fa-ellipsis-h"></i>
+      </div>
+    </div>
+    
+    <!-- Post Content (Photo) -->
+    <div class="post-content">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 400'%3E%3Cdefs%3E%3ClinearGradient id='skyGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b95;stop-opacity:0.5' /%3E%3Cstop offset='100%25' style='stop-color:%23a466ff;stop-opacity:0.5' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='300' height='400' fill='url(%23skyGradient)'/%3E%3Ccircle cx='250' cy='80' r='40' fill='%23FFF700' opacity='0.9'/%3E%3Cpath d='M0 280 Q 75 200 150 250 Q 225 300 300 220 L 300 400 L 0 400 Z' fill='%23333' opacity='0.8'/%3E%3Cpath d='M0 300 Q 75 250 150 280 Q 225 310 300 260 L 300 400 L 0 400 Z' fill='%23222' opacity='0.8'/%3E%3C/svg%3E" alt="Sunset in Tokyo" class="post-media">
+      <div class="media-type">
+        <i class="fas fa-image"></i> Photo
+      </div>
+    </div>
+    
+    <!-- Post Actions -->
+    <div class="post-actions">
+      <div class="post-action" id="likeBtn1" onclick="toggleLike(this)">
+        <i class="far fa-heart"></i>
+        <span class="post-action-count">2.4k</span>
+      </div>
+      <div class="post-action" onclick="toggleComments('comments1')">
+        <i class="far fa-comment"></i>
+        <span class="post-action-count">128</span>
+      </div>
+      <div class="post-action">
+        <i class="far fa-paper-plane"></i>
+        <span class="post-action-count">45</span>
+      </div>
+      <div class="post-action-spacer"></div>
+      <div class="post-action-save">
+        <i class="far fa-bookmark"></i>
+      </div>
+    </div>
+    
+    <!-- Post Stats -->
+    <div class="post-stats">
+      <div class="post-likes">2,432 likes</div>
+      <div class="post-timestamp">Posted 2 hours ago</div>
+    </div>
+    
+    <!-- Post Caption -->
+    <div class="post-caption">
+      <span class="post-caption-username">emma_johnson</span>
+      Magical sunset in Tokyo tonight! The colors were absolutely breathtaking.
+      <span class="post-hashtags">#tokyo #sunset #travel #japan #wanderlust</span>
+    </div>
+    
+    <!-- Comments Section (Hidden by default) -->
+    <div class="comments-section" id="comments1">
+      <!-- Post Comments -->
+      <div class="post-comments">
+        <div class="post-comment-count">View all 128 comments</div>
+        
+        <div class="post-comment">
+          <div class="post-comment-avatar">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad2' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%232196F3;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%239C27B0;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+          </div>
+          <div class="post-comment-content">
+            <div class="post-comment-text">
+              <span class="post-comment-username">travel_addict</span>
+              Wow! This is absolutely stunning! Which part of Tokyo is this?
+            </div>
+            <div class="post-comment-actions">
+              <div class="post-comment-time">45m</div>
+              <div class="post-comment-like">Like</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="post-comment">
+          <div class="post-comment-avatar">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad3' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234CAF50;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23CDDC39;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+          </div>
+          <div class="post-comment-content">
+            <div class="post-comment-text">
+              <span class="post-comment-username">photo_enthusiast</span>
+              The colors in this photo are incredible! What camera did you use?
+            </div>
+            <div class="post-comment-actions">
+              <div class="post-comment-time">32m</div>
+              <div class="post-comment-like">Like</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Comment -->
+      <div class="post-add-comment">
+        <div class="post-add-comment-avatar">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad4' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23E91E63;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F44336;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Your profile">
+        </div>
+        <input type="text" class="post-add-comment-input" placeholder="Add a comment...">
+        <button class="post-add-comment-submit">Post</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Video Post -->
+  <div class="post-container glass">
+    <!-- Post Header -->
+    <div class="post-header">
+      <div class="post-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad5' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23a466ff;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23ff6b95;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+      </div>
+      <div class="post-user-info">
+        <div class="post-username">alex_walker</div>
+        <div class="post-location">New York City</div>
+      </div>
+      <div class="post-options">
+        <i class="fas fa-ellipsis-h"></i>
+      </div>
+    </div>
+    
+    <!-- Post Content (Video) -->
+    <div class="post-content">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 400'%3E%3Cdefs%3E%3ClinearGradient id='cityGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23333;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23111;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='300' height='400' fill='url(%23cityGradient)'/%3E%3Crect x='20' y='100' width='40' height='300' fill='%23444'/%3E%3Crect x='70' y='150' width='40' height='250' fill='%23555'/%3E%3Crect x='120' y='50' width='60' height='350' fill='%23666'/%3E%3Crect x='190' y='120' width='40' height='280' fill='%23777'/%3E%3Crect x='240' y='80' width='40' height='320' fill='%23888'/%3E%3Cg fill='%23FFF' opacity='0.8'%3E%3Crect x='25' y='110' width='5' height='10'/%3E%3Crect x='35' y='110' width='5' height='10'/%3E%3Crect x='25' y='130' width='5' height='10'/%3E%3Crect x='35' y='130' width='5' height='10'/%3E%3Crect x='25' y='150' width='5' height='10'/%3E%3Crect x='35' y='150' width='5' height='10'/%3E%3Crect x='75' y='160' width='5' height='10'/%3E%3Crect x='85' y='160' width='5' height='10'/%3E%3Crect x='75' y='180' width='5' height='10'/%3E%3Crect x='85' y='180' width='5' height='10'/%3E%3Crect x='130' y='60' width='5' height='10'/%3E%3Crect x='140' y='60' width='5' height='10'/%3E%3Crect x='150' y='60' width='5' height='10'/%3E%3Crect x='130' y='80' width='5' height='10'/%3E%3Crect x='140' y='80' width='5' height='10'/%3E%3Crect x='150' y='80' width='5' height='10'/%3E%3Crect x='195' y='130' width='5' height='10'/%3E%3Crect x='205' y='130' width='5' height='10'/%3E%3Crect x='195' y='150' width='5' height='10'/%3E%3Crect x='205' y='150' width='5' height='10'/%3E%3Crect x='245' y='90' width='5' height='10'/%3E%3Crect x='255' y='90' width='5' height='10'/%3E%3Crect x='245' y='110' width='5' height='10'/%3E%3Crect x='255' y='110' width='5' height='10'/%3E%3C/g%3E%3C/svg%3E" alt="NYC Timelapse" class="post-media">
+      
+      <div class="media-type">
+        <i class="fas fa-video"></i> Video
+      </div>
+      
+      <div class="video-controls">
+        <button class="video-control-btn">
+          <i class="fas fa-play"></i>
+        </button>
+        <button class="video-control-btn">
+          <i class="fas fa-volume-up"></i>
+        </button>
+      </div>
+      
+      <div class="video-progress">
+        <div class="video-progress-bar"></div>
+      </div>
+    </div>
+    
+    <!-- Post Actions -->
+    <div class="post-actions">
+      <div class="post-action" id="likeBtn2" onclick="toggleLike(this)">
+        <i class="far fa-heart"></i>
+        <span class="post-action-count">3.8k</span>
+      </div>
+      <div class="post-action" onclick="toggleComments('comments2')">
+        <i class="far fa-comment"></i>
+        <span class="post-action-count">256</span>
+      </div>
+      <div class="post-action">
+        <i class="far fa-paper-plane"></i>
+        <span class="post-action-count">87</span>
+      </div>
+      <div class="post-action-spacer"></div>
+      <div class="post-action-save">
+        <i class="far fa-bookmark"></i>
+      </div>
+    </div>
+    
+    <!-- Post Stats -->
+    <div class="post-stats">
+      <div class="post-likes">3,842 likes</div>
+      <div class="post-timestamp">Posted 5 hours ago</div>
+    </div>
+    
+    <!-- Post Caption -->
+    <div class="post-caption">
+      <span class="post-caption-username">alex_walker</span>
+      NYC never sleeps! Captured this amazing timelapse from my apartment rooftop. The city lights are mesmerizing at night.
+      <span class="post-hashtags">#nyc #timelapse #cityscape #nightphotography #urban</span>
+    </div>
+    
+    <!-- Comments Section (Hidden by default) -->
+    <div class="comments-section" id="comments2">
+      <!-- Post Comments -->
+      <div class="post-comments">
+        <div class="post-comment-count">View all 256 comments</div>
+        
+        <div class="post-comment">
+          <div class="post-comment-avatar">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad6' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF9800;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F44336;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+          </div>
+          <div class="post-comment-content">
+            <div class="post-comment-text">
+              <span class="post-comment-username">city_explorer</span>
+              This is incredible! Which neighborhood was this shot from?
+            </div>
+            <div class="post-comment-actions">
+              <div class="post-comment-time">2h</div>
+              <div class="post-comment-like">Like</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="post-comment">
+          <div class="post-comment-avatar">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad7' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2300BCD4;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%233F51B5;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+          </div>
+          <div class="post-comment-content">
+            <div class="post-comment-text">
+              <span class="post-comment-username">video_maker</span>
+              What equipment did you use for this? The quality is amazing!
+            </div>
+            <div class="post-comment-actions">
+              <div class="post-comment-time">1h</div>
+              <div class="post-comment-like">Like</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Comment -->
+      <div class="post-add-comment">
+        <div class="post-add-comment-avatar">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad4' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23E91E63;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F44336;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Your profile">
+        </div>
+        <input type="text" class="post-add-comment-input" placeholder="Add a comment...">
+        <button class="post-add-comment-submit">Post</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Third Post (Another Photo) -->
+  <div class="post-container glass">
+    <!-- Post Header -->
+    <div class="post-header">
+      <div class="post-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad8' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%239C27B0;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%233F51B5;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+      </div>
+      <div class="post-user-info">
+        <div class="post-username">nature_lover</div>
+        <div class="post-location">Bali, Indonesia</div>
+      </div>
+      <div class="post-options">
+        <i class="fas fa-ellipsis-h"></i>
+      </div>
+    </div>
+    
+    <!-- Post Content (Photo) -->
+    <div class="post-content">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 400'%3E%3Cdefs%3E%3ClinearGradient id='beachGradient' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2303A9F4;stop-opacity:0.8' /%3E%3Cstop offset='100%25' style='stop-color:%230288D1;stop-opacity:0.8' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='300' height='400' fill='url(%23beachGradient)'/%3E%3Cpath d='M0 250 L 300 250 L 300 400 L 0 400 Z' fill='%23FFECB3'/%3E%3Cpath d='M150 270 Q 100 260 50 270 Q 0 280 0 300 L 0 400 L 300 400 L 300 300 Q 300 280 250 270 Q 200 260 150 270 Z' fill='%23FFD54F'/%3E%3Ccircle cx='250' cy='70' r='30' fill='%23FFEB3B' opacity='0.9'/%3E%3Cpath d='M180 250 L 220 250 L 200 200 Z' fill='%23795548'/%3E%3Cpath d='M190 200 L 210 200 L 200 150 L 190 200 Z' fill='%23795548'/%3E%3Cpath d='M180 200 Q 200 180 220 200 L 220 250 L 180 250 Z' fill='%238D6E63'/%3E%3C/svg%3E" alt="Beach in Bali" class="post-media">
+      <div class="media-type">
+        <i class="fas fa-image"></i> Photo
+      </div>
+    </div>
+    
+    <!-- Post Actions -->
+    <div class="post-actions">
+      <div class="post-action" id="likeBtn3" onclick="toggleLike(this)">
+        <i class="far fa-heart"></i>
+        <span class="post-action-count">5.2k</span>
+      </div>
+      <div class="post-action" onclick="toggleComments('comments3')">
+        <i class="far fa-comment"></i>
+        <span class="post-action-count">342</span>
+      </div>
+      <div class="post-action">
+        <i class="far fa-paper-plane"></i>
+        <span class="post-action-count">124</span>
+      </div>
+      <div class="post-action-spacer"></div>
+      <div class="post-action-save">
+        <i class="far fa-bookmark"></i>
+      </div>
+    </div>
+    
+    <!-- Post Stats -->
+    <div class="post-stats">
+      <div class="post-likes">5,231 likes</div>
+      <div class="post-timestamp">Posted 1 day ago</div>
+    </div>
+    
+    <!-- Post Caption -->
+    <div class="post-caption">
+      <span class="post-caption-username">nature_lover</span>
+      Paradise found in Bali! Crystal clear waters and perfect weather. Can't believe I get to call this place home for the next month.
+      <span class="post-hashtags">#bali #beach #paradise #travel #islandlife</span>
+    </div>
+    
+    <!-- Comments Section (Hidden by default) -->
+    <div class="comments-section" id="comments3">
+      <!-- Post Comments -->
+      <div class="post-comments">
+        <div class="post-comment-count">View all 342 comments</div>
+        
+        <div class="post-comment">
+          <div class="post-comment-avatar">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad9' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF5722;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FF9800;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+          </div>
+          <div class="post-comment-content">
+            <div class="post-comment-text">
+              <span class="post-comment-username">beach_bum</span>
+              This is my dream destination! Which beach is this exactly?
+            </div>
+            <div class="post-comment-actions">
+              <div class="post-comment-time">12h</div>
+              <div class="post-comment-like">Like</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="post-comment">
+          <div class="post-comment-avatar">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad10' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234CAF50;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%238BC34A;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="User">
+          </div>
+          <div class="post-comment-content">
+            <div class="post-comment-text">
+              <span class="post-comment-username">wanderlust_soul</span>
+              I was just there last month! Did you check out the local seafood market? It's amazing!
+            </div>
+            <div class="post-comment-actions">
+              <div class="post-comment-time">8h</div>
+              <div class="post-comment-like">Like</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Comment -->
+      <div class="post-add-comment">
+        <div class="post-add-comment-avatar">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad4' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23E91E63;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F44336;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='35' r='20' fill='%23fff'/%3E%3Cpath d='M50 60 C 30 60 15 80 15 100 L 85 100 C 85 80 70 60 50 60 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Your profile">
+        </div>
+        <input type="text" class="post-add-comment-input" placeholder="Add a comment...">
+        <button class="post-add-comment-submit">Post</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Toggle comments visibility
+    function toggleComments(commentsId) {
+      const commentsSection = document.getElementById(commentsId);
+      const commentIcon = event.currentTarget.querySelector('i');
+      
+      // Add bounce animation to comment icon
+      commentIcon.classList.add('comment-bounce');
+      setTimeout(() => {
+        commentIcon.classList.remove('comment-bounce');
+      }, 400);
+      
+      // Toggle comments section
+      commentsSection.classList.toggle('active');
+      
+      // Scroll to comments if they're being opened
+      if (commentsSection.classList.contains('active')) {
+        setTimeout(() => {
+          commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
+    }
+    
+    // Like button functionality
+    function toggleLike(btn) {
+      const icon = btn.querySelector('i');
+      const count = btn.querySelector('.post-action-count');
+      const postContainer = btn.closest('.post-container');
+      const likesDisplay = postContainer.querySelector('.post-likes');
+      
+      if (icon.classList.contains('far')) {
+        // Like
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        icon.classList.add('pulse');
+        btn.classList.add('liked');
+        
+        // Update counts based on which post was liked
+        if (btn.id === 'likeBtn1') {
+          count.textContent = '2.5k';
+          likesDisplay.textContent = '2,501 likes';
+        } else if (btn.id === 'likeBtn2') {
+          count.textContent = '3.9k';
+          likesDisplay.textContent = '3,901 likes';
+        } else if (btn.id === 'likeBtn3') {
+          count.textContent = '5.3k';
+          likesDisplay.textContent = '5,300 likes';
+        }
+        
+        setTimeout(() => {
+          icon.classList.remove('pulse');
+        }, 300);
+      } else {
+        // Unlike
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        btn.classList.remove('liked');
+        
+        // Update counts based on which post was unliked
+        if (btn.id === 'likeBtn1') {
+          count.textContent = '2.4k';
+          likesDisplay.textContent = '2,432 likes';
+        } else if (btn.id === 'likeBtn2') {
+          count.textContent = '3.8k';
+          likesDisplay.textContent = '3,842 likes';
+        } else if (btn.id === 'likeBtn3') {
+          count.textContent = '5.2k';
+          likesDisplay.textContent = '5,231 likes';
+        }
+      }
+    }
+    
+    // Video play button functionality
+    document.querySelectorAll('.video-control-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        
+        if (icon.classList.contains('fa-play')) {
+          icon.classList.remove('fa-play');
+          icon.classList.add('fa-pause');
+          
+          // Simulate video progress
+          simulateVideoProgress();
+        } else if (icon.classList.contains('fa-pause')) {
+          icon.classList.remove('fa-pause');
+          icon.classList.add('fa-play');
+          
+          // Stop progress simulation
+          clearInterval(window.progressInterval);
+        } else if (icon.classList.contains('fa-volume-up')) {
+          icon.classList.remove('fa-volume-up');
+          icon.classList.add('fa-volume-mute');
+        } else if (icon.classList.contains('fa-volume-mute')) {
+          icon.classList.remove('fa-volume-mute');
+          icon.classList.add('fa-volume-up');
+        }
+      });
+    });
+    
+    // Simulate video progress
+    function simulateVideoProgress() {
+      const progressBar = document.querySelector('.video-progress-bar');
+      let width = 30;
+      
+      window.progressInterval = setInterval(() => {
+        if (width >= 100) {
+          clearInterval(window.progressInterval);
+          
+          // Reset play button
+          const playBtn = document.querySelector('.video-control-btn i.fa-pause');
+          if (playBtn) {
+            playBtn.classList.remove('fa-pause');
+            playBtn.classList.add('fa-play');
+          }
+        } else {
+          width += 0.5;
+          progressBar.style.width = width + '%';
+        }
+      }, 100);
+    }
+  </script>
+</body>
+</html>

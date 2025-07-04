@@ -3,7 +3,20 @@
 
 /////////////////////// UI HOOKUP ///////////////////////
 
+function loadPostsUIStyles() {
+  if (document.head.querySelector('[data-posts-ui-styles]')) return;
+  fetch('posts_ui.html').then(r => r.text()).then(html => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => {
+      const clone = el.cloneNode(true);
+      clone.setAttribute('data-posts-ui-styles', '');
+      document.head.appendChild(clone);
+    });
+  }).catch(console.error);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  loadPostsUIStyles();
   makeHiddenFileInput();
   setupPreviewClick();
   initFeedListener();
@@ -171,16 +184,29 @@ async function renderPost(container, doc) {
   const timeStr = data.timestamp ? _fmtTime(data.timestamp.toDate()) : 'Just now';
 
   const postEl = document.createElement('div');
-  postEl.className = 'post glass';
+  postEl.className = 'post-container glass';
   postEl.innerHTML = `
     <div class="post-header">
       <div class="avatar">${avatarURL ? `<img src="${avatarURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : '<i class="fas fa-user"></i>'}</div>
       <div class="user-info"><div class="username">${username}</div><div class="time">${timeStr}</div></div>
       <i class="fas fa-ellipsis-v"></i>
     </div>
-    <div class="post-content">${data.caption ? `<p>${data.caption}</p>` : ''}</div>
+    ${data.caption ? `<div class="post-caption"><span class="post-caption-username">${username}</span> ${data.caption}</div>` : ''}
     ${renderMediaHTML(data)}
-    <div class="post-footer"><div class="post-buttons"></div></div>
+    <div class="post-actions">
+      <div class="post-action" onclick="toggleLike(this)" data-id="${doc.id}">
+        <i class="${data.likedBy?.includes(currentUid) ? 'fas' : 'far'} fa-heart"></i>
+        <span class="post-action-count">${data.likes || 0}</span>
+      </div>
+      <div class="post-action" onclick="alert('Comments feature coming soon!')">
+        <i class="far fa-comment"></i>
+        <span class="post-action-count">0</span>
+      </div>
+      <div class="post-action"><i class="far fa-paper-plane"></i></div>
+      <div class="post-action-spacer"></div>
+      <div class="post-action"><i class="far fa-bookmark"></i></div>
+    </div>
+    <div class="post-stats"><div class="post-likes">${data.likes || 0} likes</div><div class="post-timestamp">${timeStr}</div></div>
   `;
   container.appendChild(postEl);
 }
@@ -191,5 +217,5 @@ function renderMediaHTML(d) {
     return `<video src="${d.mediaURL}" style="width:100%;height:333px;aspect-ratio:3/4;object-fit:cover;" controls></video>`;
   }
   // Always force portrait 3:4 (w:h) for images
-  return `<img src="${d.mediaURL}" style="width:100%;height:333px;aspect-ratio:3/4;object-fit:cover;">`;
+  return `<img class="post-media" src="${d.mediaURL}" style="width:100%;height:100%;object-fit:cover;">`;
 }

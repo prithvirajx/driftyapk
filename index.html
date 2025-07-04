@@ -2850,7 +2850,6 @@ async function viewProfile(uid, distanceKm, reason) {
         startHangoutRequestListener();
         startChatRoomsListener();
         startOutgoingRequestStatusListener();
-        startIncomingVideoCallListener();
         // Restore open chat room if previously active
         const wasInRoom = localStorage.getItem('inChatRoom');
         const storedRoomId = localStorage.getItem('currentRoomId');
@@ -2868,49 +2867,8 @@ async function viewProfile(uid, distanceKm, reason) {
     window.location.href = 'outgoing-call-ui.html';
   }
 
-  // Start a new video call – create a signalling doc then redirect with ?callId=
   function startVideoCall() {
-    if (!currentRoomId) {
-      // Fallback – just open the UI if for some reason we are not inside a chat room
-      window.location.href = 'video-call-ui.html';
-      return;
-    }
-
-    // Get the other participant UID from the chat room document
-    db.collection('chatRooms').doc(currentRoomId).get().then(roomDoc => {
-      const roomData = roomDoc.data() || {};
-      const otherUid = (roomData.participants || []).find(uid => uid !== currentUid);
-      const callRef = db.collection('videoCalls').doc();
-      callRef.set({
-        callerUid: currentUid,
-        calleeUid: otherUid || null,
-        created: firebase.firestore.FieldValue.serverTimestamp(),
-        answered: false,
-        ended: false
-      }).then(() => {
-        // Navigate with callId & caller flag
-        window.location.href = `video-call-ui.html?callId=${callRef.id}&caller=true`;
-      });
-    }).catch(err => {
-      console.error('Failed to start video call', err);
-      window.location.href = 'video-call-ui.html';
-    });
-  }
-
-  // Listen for incoming video calls and automatically open the call UI
-  function startIncomingVideoCallListener() {
-    if (!currentUid) return;
-    db.collection('videoCalls')
-      .where('calleeUid', '==', currentUid)
-      .where('answered', '==', false)
-      .onSnapshot(snapshot => {
-        snapshot.docChanges().forEach(change => {
-          if (change.type === 'added') {
-            const callId = change.doc.id;
-            window.location.href = `video-call-ui.html?callId=${callId}&caller=false`;
-          }
-        });
-      });
+    window.location.href = 'video-call-ui.html';
   }
 
   // Placeholder for chat options menu

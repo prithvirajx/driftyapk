@@ -2803,11 +2803,16 @@ async function viewProfile(uid, distanceKm, reason) {
           });
         }
 
-        // Avatar photo
-        if (data.profilePhotoURL) {
+        // Avatar photo (profile view & create-post card)
+        const photoURL = data.profilePhotoURL || firebase.auth().currentUser?.photoURL || '';
+        if (photoURL) {
           const avatar = document.querySelector('#profile-view .profile-avatar');
           if (avatar) {
-            avatar.innerHTML = `<img src="${data.profilePhotoURL}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            avatar.innerHTML = `<img src="${photoURL}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+          }
+          const cpAvatar = document.querySelector('#feed-view .create-post .avatar');
+          if (cpAvatar) {
+            cpAvatar.innerHTML = `<img src="${photoURL}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
           }
         }
 

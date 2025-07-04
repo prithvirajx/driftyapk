@@ -110,7 +110,7 @@ async function submitPost() {
         const prof = await db.collection('profiles').doc(currentUid).get();
         if (prof.exists) {
           const pdata = prof.data();
-          usernameField = pdata.name || pdata.username || pdata.displayName || usernameField;
+          usernameField = pdata.fullName || pdata.name || pdata.username || pdata.displayName || usernameField;
           avatarField = pdata.profilePhotoURL || pdata.photoURL || avatarField;
         }
       } catch {}
@@ -163,7 +163,7 @@ async function renderPost(container, doc) {
       const pSnap = await db.collection('profiles').doc(data.uid).get();
       if (pSnap.exists) {
         const pd = pSnap.data();
-        username = pd.name || pd.username || pd.displayName || username;
+        username = pd.fullName || pd.name || pd.username || pd.displayName || username;
         avatarURL = pd.profilePhotoURL || pd.photoURL || avatarURL;
       }
     } catch {}

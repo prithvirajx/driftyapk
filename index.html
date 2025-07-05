@@ -182,6 +182,7 @@
     
     .post-input {
       flex: 1;
+      min-width: 0; /* Allows input to shrink below default minimum width */
       padding: 12px 15px;
       border-radius: 20px;
       border: none;
@@ -189,6 +190,9 @@
       color: white;
       outline: none;
       font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .post-input::placeholder {
@@ -527,6 +531,15 @@
       align-items: center;
       justify-content: center;
       font-size: 40px;
+      aspect-ratio: 1/1; /* Ensures perfect circle */
+      overflow: hidden; /* Keeps image contained within circle */
+    }
+    
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     
     .profile-info {

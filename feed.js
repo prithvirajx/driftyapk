@@ -172,6 +172,8 @@ function initFeedListener() {
     for (const doc of snap.docs) {
       await renderPost(container, doc);
     }
+    // Reveal feed only after real data has been rendered to avoid showing mock placeholders
+    container.style.display = 'block';
   });
 }
 

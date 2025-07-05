@@ -1132,7 +1132,7 @@
     </div>
     
     <!-- Feed -->
-    <div class="feed" id="feed-container">
+    <div class="feed" id="feed-container" style="display:none">
       <!-- Post 1 -->
       <div class="post glass" style="animation-delay: 0.1s">
         <div class="post-header">
@@ -2966,26 +2966,22 @@ async function viewProfile(uid, distanceKm, reason) {
       postsBtn.addEventListener('click', function() {
         // Hide profile info
         profileInfo.style.display = 'none';
-        // Load posts UI on first click
+        // Load posts UI in an iframe on first click to isolate CSS
         if (!postsContainer.dataset.loaded) {
-          fetch('posts_ui.html')
-            .then(res => res.text())
-            .then(html => {
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(html, 'text/html');
-              // Inject body markup
-              postsContainer.innerHTML = doc.body.innerHTML;
-              // Inject inline <style> and external <link rel="stylesheet">
-              const headEls = doc.head.querySelectorAll('style, link[rel="stylesheet"]');
-              headEls.forEach(el => {
-                // Avoid duplicates (rudimentary check by outerHTML)
-                if (![...document.head.children].some(h => h.outerHTML === el.outerHTML)) {
-                  document.head.appendChild(el.cloneNode(true));
-                }
-              });
-              postsContainer.dataset.loaded = 'true';
-            })
-            .catch(console.error);
+          const iframe = document.createElement('iframe');
+          iframe.src = 'posts_ui.html';
+          iframe.style.border = 'none';
+          iframe.style.width = '100%';
+          iframe.style.display = 'block';
+          iframe.loading = 'lazy';
+          iframe.onload = () => {
+            try {
+              const doc = iframe.contentDocument || iframe.contentWindow.document;
+              iframe.style.height = doc.documentElement.scrollHeight + 'px';
+            } catch (e) { console.warn('iframe resize failed', e); }
+          };
+          postsContainer.appendChild(iframe);
+          postsContainer.dataset.loaded = 'true';
         }
         postsContainer.style.display = 'block';
       });
